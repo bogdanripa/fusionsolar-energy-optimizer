@@ -94,6 +94,7 @@ async function authenticate() {
 }
 
 async function wakeUp(maxRetries = 30) {
+  chargeState = undefined;
   if (maxRetries == 0) {
     throw "wakeup failed, giving up";
   }
