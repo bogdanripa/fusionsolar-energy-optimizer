@@ -1,0 +1,17 @@
+name: fusionsolar-energy-optimizer
+region: us-east-1
+cloudProvider: aws
+sdk:
+  language: js
+  options:
+    runtime: node
+  path: ./sdk/
+classes:
+  - path: index.js
+    type: jsonrpc
+    methods:
+      - name: "optimize"
+        type: cron
+        cronString: "2/5 * * * *"
+      - name: "optimize"
+        type: jsonrpc

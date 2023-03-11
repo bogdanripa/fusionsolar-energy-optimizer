@@ -1,0 +1,21 @@
+{
+    "teslaToken": "****** YOUR TESLA ACCOUNT TOKEN *****",
+    "fusionsolarCredentials": {
+        "user": "****** YOUR FUSIONSOLAR USERNAME *****",
+        "password": "****** YOUR FUSIONSOLAR PASSWORD *****"
+    },
+    "solarLocation": {
+        "lat": 44,
+        "long": 25
+    },
+    "MONGO_DB_URI": "****** YOUR MONGODB URI *****",
+    "usedWatts": {
+        "startAmp": 4,
+        "incrementalAmp": 2,
+        "upperLimit": 0.5
+    },
+    "teslaAmps": {
+        "min": 5,
+        "max": 32
+    }
+}
