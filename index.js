@@ -17,13 +17,13 @@ export class FusionsolarEnergyOptimizer {
     async optimize() {
         var pos = await tesla.getPosition()
  
-        if (Math.abs(this.#solarLocation.lat - pos.lat) > 0.001 || Math.abs(this.#solarLocation.long - pos.long) > 0.0001) {
+        if (Math.abs(this.#solarLocation.lat - pos.lat) > 0.001 || Math.abs(this.#solarLocation.long - pos.long) > 0.001) {
             // car not on location, do nothing
             console.log("Car not on location")
             return
         }
 
-        var awake = await tesla.isAwake();
+        //var awake = await tesla.isAwake();
 
         await tesla.wakeUp()
         var cs = await tesla.getChargeState()
@@ -33,6 +33,8 @@ export class FusionsolarEnergyOptimizer {
 
         if (cl != 100 && cs != 'Disconnected' && cs != 'Complete') {
             var status = await fusionsolar.getRealTimeDetails()
+
+            console.log(status)
             
             if (status.using + diff < status.producing) {
                 // can use more
@@ -48,7 +50,7 @@ export class FusionsolarEnergyOptimizer {
                     return
                 }
             } else {
-                if (status.using < status.producing + config.usedWatts.upperLimit) {
+                if (status.using < status.producing - config.usedWatts.upperLimit) {
                     console.log("Tesla is " + cs + ", using slightly less power than what we produce.")
                     return
                 } else {
