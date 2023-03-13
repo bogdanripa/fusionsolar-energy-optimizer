@@ -11,6 +11,6 @@ Deploymenmt instruction steps:
     3. Once signed in, go to the details page where you see the real-time data, and copy the stationID from the URL. Should be something like: https://region04eu5.fusionsolar.huawei.com/pvmswebsite/assets/build/index.html#/view/station/NE=12345678/overview and you need to get the "NE-12345678" ID and save it in the config file
     4. solarLocation should be the location of your charging point
     5. MONGO_DB_URI is a mongodb connection URI where  we store cached tokens and cookies
-3. Create a https://genez.io/ account and install; thye CLI tool: https://docs.genez.io/genezio-documentation/getting-started/install-the-genezio-cli
+3. Create a https://genez.io/ account, install the CLI tool: https://docs.genez.io/genezio-documentation/getting-started/install-the-genezio-cli and sign in
 4. Run "genezio deploy" in the current folder
 5. Enjoy!
