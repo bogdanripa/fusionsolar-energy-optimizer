@@ -6,10 +6,10 @@ Deploymenmt instruction steps:
 
 1. Copy config/default.json.template to config/default.json
 2. Enter your information in the config.json file
-2.1. There are multiple ways to get a tesla refresh token. I used this one: https://chrome.google.com/webstore/detail/tesla-access-token-genera/kokkedfblmfbngojkeaepekpidghjgag
-2.2. fusionsolarCredentials should be your user / pass that you use to sign in to https://eu5.fusionsolar.huawei.com/
-2.3. solarLocation should be the locatiopn of your charging point
-2.4. MONGO_DB_URI is a mongodb connection URI where  we store cached tokens and cookies
+ 1. There are multiple ways to get a tesla refresh token. I used this one: https://chrome.google.com/webstore/detail/tesla-access-token-genera/kokkedfblmfbngojkeaepekpidghjgag
+ 2. fusionsolarCredentials should be your user / pass that you use to sign in to https://eu5.fusionsolar.huawei.com/
+ 3. solarLocation should be the locatiopn of your charging point
+ 4. MONGO_DB_URI is a mongodb connection URI where  we store cached tokens and cookies
 3. Create a https://genez.io/ account and install; thye CLI tool: https://docs.genez.io/genezio-documentation/getting-started/install-the-genezio-cli
 4. Run "genezio deploy" in the current folder
 5. Enjoy!
