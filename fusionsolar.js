@@ -14,6 +14,7 @@ function getSecureRandom() {
 }
 
 var credentials = {}
+var stationId
 var c = {}
 var signedIn = false
 var MONGO_DB_URI
@@ -36,14 +37,14 @@ function setMongoDBUri(uri) {
 
 async function initMongo() {
     if (!McModel) {
-        console.log("fusionsolar: init mongo connection")
+        //console.log("fusionsolar: init mongo connection")
         await mongoose.connect(MONGO_DB_URI);
         McModel = mongoose.models.fusionsolar || mongoose.model('fusionsolar', new mongoose.Schema({cookiesStr: {type: String, required: true}}));
     }
 }
 
 async function request(method, url, headers, data) {
-    console.log("Fusionsolar: " + method +" " +url)
+    //console.log("Fusionsolar: " + method +" " +url)
     if (!headers) headers = {};
     var domain = url.replace(/^\w+:\/\//, '').replace(/\/.*$/, '');
     if (c[domain]) {
@@ -83,12 +84,13 @@ async function request(method, url, headers, data) {
     return response;
 }
 
-function setCredentials(user, pass) {
+function setCredentials(user, pass, sId) {
     credentials = {
         "organizationName": '',
         "username": user,
         "password": pass,
     };
+    stationId = sId;
 }
 
 async function signIn() {
@@ -99,7 +101,7 @@ async function signIn() {
     await initMongo();
     const mc = await McModel.find()
     if(mc[0]) {
-        console.log("Fusionsolar: reusing cookies from mongo");
+        //console.log("Fusionsolar: reusing cookies from mongo");
         try {
             c = JSON.parse(mc[0].cookiesStr)
             return;
@@ -126,6 +128,7 @@ async function signIn() {
     await request("POST", 'https://eu5.fusionsolar.huawei.com/unisso/v3/validateUser.action?timeStamp=' + response.data.timeStamp + '&nonce=' + getSecureRandom(), {}, encryptedCredentials);
     await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/neteco/syscfg/v1/homepage?from=LOGIN');
 
+    console.log("Fusionsolar: saving cookies to mongo");
     await McModel.deleteMany()
     await McModel.create({cookiesStr: JSON.stringify(c)})
   
@@ -134,7 +137,7 @@ async function signIn() {
 
 async function getStationDetails() {
     await signIn();
-    var response = await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/pvms/web/station/v1/overview/energy-flow?stationDn=NE=35757068');
+    var response = await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/pvms/web/station/v1/overview/energy-flow?stationDn=' + stationId);
     return response.data;
 }
 

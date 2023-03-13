@@ -2,7 +2,8 @@
     "teslaToken": "****** YOUR TESLA ACCOUNT TOKEN *****",
     "fusionsolarCredentials": {
         "user": "****** YOUR FUSIONSOLAR USERNAME *****",
-        "password": "****** YOUR FUSIONSOLAR PASSWORD *****"
+        "password": "****** YOUR FUSIONSOLAR PASSWORD *****",
+        "stationId": "NE=12345678"
     },
     "solarLocation": {
         "lat": 44,

@@ -13,7 +13,7 @@ export class FusionsolarEnergyOptimizer {
         tesla.setRefreshToken(config.get('teslaToken'))
         tesla.setMongoDBUri(config.get('MONGO_DB_URI'))
 
-        fusionsolar.setCredentials(config.get('fusionsolarCredentials.user'), config.get('fusionsolarCredentials.password'))
+        fusionsolar.setCredentials(config.get('fusionsolarCredentials.user'), config.get('fusionsolarCredentials.password'), config.get('fusionsolarCredentials.stationId'))
         fusionsolar.setMongoDBUri(config.get('MONGO_DB_URI'))
     }
 
@@ -28,11 +28,13 @@ export class FusionsolarEnergyOptimizer {
 
         //var awake = await tesla.isAwake();
 
+        console.log("Getting tesla details");
         await tesla.wakeUp()
         var cs = await tesla.getChargeState()
         var cl = await tesla.getChargeLimit()
         var amps
         var diff = cs == 'Charging'?config.get('usedWatts.incrementalAmp'):config.get('usedWatts.startAmp');
+        console.log("Tesla is " + cs + ", target: " + cl + "%");
 
         if (cl != 100 && cs != 'Disconnected' && cs != 'Complete') {
             console.log("Getting fusionsolar details");

@@ -15,7 +15,7 @@ function sleep(ms) {
 }
 
 function setRefreshToken(token) {
-  console.log("Tesla: setRefreshToken");
+  //console.log("Tesla: setRefreshToken");
   refreshToken = token;
 }
 
@@ -25,7 +25,7 @@ function setMongoDBUri(uri) {
 
 async function initMongo() {
   if (!MatModel) {
-    console.log("Tesla: init mongo connection")
+    //console.log("Tesla: init mongo connection")
     await mongoose.connect(MONGO_DB_URI);
     MatModel = mongoose.models.tesla || mongoose.model('tesla', new mongoose.Schema({accessToken: {type: String, required: true}, vID: {type: String, required: true}}));
   }
@@ -39,7 +39,7 @@ async function request(method, uri, data = {}, retried = false) {
     Authorization: "Bearer "+accessToken
   };
 
-  console.log("Tesla: " + method + " " + newUri);
+  //console.log("Tesla: " + method + " " + newUri);
 
   try {
     var response = await axios.request({
@@ -70,13 +70,13 @@ async function authenticate() {
   await initMongo();
   const mats = await MatModel.find()
   if(mats[0]) {
-    console.log("Tesla: reusing token from mongo");
+    //console.log("Tesla: reusing token from mongo");
     accessToken = mats[0].accessToken
     vID = mats[0].vID
     return;
   }
 
-  console.log("Tesla: authenticating");
+  //console.log("Tesla: authenticating");
   
   var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
     grant_type: 'refresh_token',
@@ -90,6 +90,7 @@ async function authenticate() {
   if (!vID)
     vID = (await request('GET', '/vehicles', {}, true))[0].id;
 
+  console.log("Tesla: saving token to mongo");
   await MatModel.deleteMany()
   await MatModel.create({accessToken: accessToken, vID: vID})
   
