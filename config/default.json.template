@@ -10,8 +10,8 @@
     },
     "MONGO_DB_URI": "****** YOUR MONGODB URI *****",
     "usedWatts": {
-        "startAmp": 4,
-        "incrementalAmp": 2,
+        "startAmp": 3.5,
+        "incrementalAmp": 1.9,
         "upperLimit": 0.5
     },
     "teslaAmps": {

@@ -1,6 +1,8 @@
+"use strict"
+
+import config from 'config'
 import {tesla} from './tesla.js'
 import {fusionsolar} from './fusionsolar.js'
-import config from './config.json'// assert {type: 'json'}
 
 export class FusionsolarEnergyOptimizer {
     #solarLocation = config.solarLocation
@@ -8,10 +10,11 @@ export class FusionsolarEnergyOptimizer {
     constructor() {
         console.log("Constructor called!");
 
-        tesla.setRefreshToken(config.teslaToken)
-        tesla.setMongoDBUri(config.MONGO_DB_URI)
+        tesla.setRefreshToken(config.get('teslaToken'))
+        tesla.setMongoDBUri(config.get('MONGO_DB_URI'))
 
-        fusionsolar.setCredentials(config.fusionsolarCredentials.user, config.fusionsolarCredentials.password)
+        fusionsolar.setCredentials(config.get('fusionsolarCredentials.user'), config.get('fusionsolarCredentials.password'))
+        fusionsolar.setMongoDBUri(config.get('MONGO_DB_URI'))
     }
 
     async optimize() {
@@ -29,11 +32,11 @@ export class FusionsolarEnergyOptimizer {
         var cs = await tesla.getChargeState()
         var cl = await tesla.getChargeLimit()
         var amps
-        var diff = cs == 'Charging'?config.usedWatts.incrementalAmp:config.usedWatts.startAmp;
+        var diff = cs == 'Charging'?config.get('usedWatts.incrementalAmp'):config.get('usedWatts.startAmp');
 
         if (cl != 100 && cs != 'Disconnected' && cs != 'Complete') {
+            console.log("Getting fusionsolar details");
             var status = await fusionsolar.getRealTimeDetails()
-
             console.log(status)
             
             if (status.using + diff < status.producing) {
@@ -44,13 +47,13 @@ export class FusionsolarEnergyOptimizer {
                     console.log("Increasing tesla charging to " + (amps+1) + " amps")
                     return
                 } else {
-                    await tesla.setChargeAmps(config.teslaAmps.min)
+                    await tesla.setChargeAmps(config.get('teslaAmps.min'))
                     await tesla.startCharging()
-                    console.log("Starting charging tesla at "+config.teslaAmps.min+" amps")
+                    console.log("Starting charging tesla at "+config.get('teslaAmps.min')+" amps")
                     return
                 }
             } else {
-                if (status.using < status.producing - config.usedWatts.upperLimit) {
+                if (status.using < status.producing - config.get('usedWatts.upperLimit')) {
                     console.log("Tesla is " + cs + ", using slightly less power than what we produce.")
                     return
                 } else {

@@ -1,6 +1,6 @@
 
-config.json
 sdk/remote.js
 sdk/fusionsolarEnergyOptimizer.sdk.js
 package-lock.json
 node_modules
+config/default.json

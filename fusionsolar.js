@@ -1,20 +1,24 @@
-import rs from 'jsrsasign';
-var KEYUTIL = rs.KEYUTIL;
+"use strict"
 
-import axios from 'axios';
+import rs from 'jsrsasign'
+import mongoose from 'mongoose'
+import axios from 'axios'
 
 function getSecureRandom() {
-    var result = '';
+    var result = ''
     for (var i = 0; i < 15; i++) {
-        result += (Math.floor(Math.random() * 256)).toString(16);
+        result += (Math.floor(Math.random() * 256)).toString(16)
     }
 
-    return result;
+    return result
 }
 
-var credentials = {};
-var c = {};
-var signedIn = false;
+var credentials = {}
+var c = {}
+var signedIn = false
+var MONGO_DB_URI
+var McModel
+
 
 function getCookies(domain) {
     var cStr = '';
@@ -26,7 +30,20 @@ function getCookies(domain) {
     return cStr;
 }
 
+function setMongoDBUri(uri) {
+    MONGO_DB_URI=uri
+}
+
+async function initMongo() {
+    if (!McModel) {
+        console.log("fusionsolar: init mongo connection")
+        await mongoose.connect(MONGO_DB_URI);
+        McModel = mongoose.models.fusionsolar || mongoose.model('fusionsolar', new mongoose.Schema({cookiesStr: {type: String, required: true}}));
+    }
+}
+
 async function request(method, url, headers, data) {
+    console.log("Fusionsolar: " + method +" " +url)
     if (!headers) headers = {};
     var domain = url.replace(/^\w+:\/\//, '').replace(/\/.*$/, '');
     if (c[domain]) {
@@ -60,7 +77,7 @@ async function request(method, url, headers, data) {
         if (newURL.match(/^\//)) {
             newURL = url.replace(/^(\w+:\/\/[^\/]*).*$/, '$1') + newURL;
         }
-        return request("get", newURL, {});
+        return request("GET", newURL, {});
     }
 
     return response;
@@ -78,8 +95,22 @@ async function signIn() {
     if (signedIn) return;
     if (!credentials.username) throw "Fusionsolar credentials not supplied"
 
+    // try getting the cookies from mongo
+    await initMongo();
+    const mc = await McModel.find()
+    if(mc[0]) {
+        console.log("Fusionsolar: reusing cookies from mongo");
+        try {
+            c = JSON.parse(mc[0].cookiesStr)
+            return;
+        } catch {
+            console.log("Fusionsolar: failed reusing cookies from mongo");
+            McModel.deleteMany();
+        }
+    }
+
     var response = await request("GET", 'https://eu5.fusionsolar.huawei.com/unisso/pubkey');
-    var pubKey = KEYUTIL.getKey(response.data.pubKey);
+    var pubKey = rs.KEYUTIL.getKey(response.data.pubKey);
     var valueEncode = encodeURIComponent(credentials.password);
     var encryptValue = "";
     for (var i = 0; i < valueEncode.length / 270; i++) {
@@ -94,6 +125,10 @@ async function signIn() {
 
     await request("POST", 'https://eu5.fusionsolar.huawei.com/unisso/v3/validateUser.action?timeStamp=' + response.data.timeStamp + '&nonce=' + getSecureRandom(), {}, encryptedCredentials);
     await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/neteco/syscfg/v1/homepage?from=LOGIN');
+
+    await McModel.deleteMany()
+    await McModel.create({cookiesStr: JSON.stringify(c)})
+  
     signedIn = true;
 }
 
@@ -124,23 +159,32 @@ axios.interceptors.response.use(response => {
 });
 */
 
-async function getRealTimeDetails() {
+async function getRealTimeDetails(retied = false) {
     var sl = await getStationDetails();
 
     var out = {};
 
-    for (var node of [...sl.data.flow.nodes, ...sl.data.flow.links]) {
-        switch (node.description.label) {
-            case 'neteco.pvms.KPI.kpiView.electricalLoad':
-                out.using = parseFloat(node.description.value.replace(/\s.*/, ''));
-                break;
-            case 'neteco.pvms.energy.flow.buy.power':
-                out.buying = parseFloat(node.description.value.replace(/\s.*/, ''));
-                break;
-            case 'neteco.pvms.devTypeLangKey.string':
-                out.producing = parseFloat(node.description.value.replace(/\s.*/, ''));
-                break;
+    try {
+        for (var node of [...sl.data.flow.nodes, ...sl.data.flow.links]) {
+            switch (node.description.label) {
+                case 'neteco.pvms.KPI.kpiView.electricalLoad':
+                    out.using = parseFloat(node.description.value.replace(/\s.*/, ''));
+                    break;
+                case 'neteco.pvms.devTypeLangKey.string':
+                    out.producing = parseFloat(node.description.value.replace(/\s.*/, ''));
+                    break;
+            }
         }
+    } catch(e) {
+        // sign in expired
+        signedIn = false;
+        await McModel.deleteMany();
+        c = {};
+        if (!retied) {
+            console.log("Fusionsolar: sign in cookies expired. Retrying.")
+            return getRealTimeDetails(true);
+        }
+        console.log("Fusionsolar: retried singnin failed");
     }
 
     return out;
@@ -148,5 +192,6 @@ async function getRealTimeDetails() {
 
 export const fusionsolar = {
     setCredentials,
-    getRealTimeDetails
+    getRealTimeDetails,
+    setMongoDBUri
 };
