@@ -5,7 +5,7 @@ This genezio app will match the energy that a huawei fusionsolar inverter genera
 Deploymenmt instruction steps:
 
 1. Copy config/default.json.template to config/default.json
-2. Enter your information in the config.json file
+2. Enter your information in the default.json file
     1. There are multiple ways to get a tesla refresh token. I used this one: https://chrome.google.com/webstore/detail/tesla-access-token-genera/kokkedfblmfbngojkeaepekpidghjgag
     2. fusionsolarCredentials should be your user / pass that you use to sign in to https://eu5.fusionsolar.huawei.com/
     3. Once signed in, go to the details page where you see the real-time data, and copy the stationID from the URL. Should be something like: https://region04eu5.fusionsolar.huawei.com/pvmswebsite/assets/build/index.html#/view/station/NE=12345678/overview and you need to get the "NE-12345678" ID and save it in the config file
