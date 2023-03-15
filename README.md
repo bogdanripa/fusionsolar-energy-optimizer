@@ -10,7 +10,18 @@ Deploymenmt instruction steps:
     2. fusionsolarCredentials should be your user / pass that you use to sign in to https://eu5.fusionsolar.huawei.com/
     3. Once signed in, go to the details page where you see the real-time data, and copy the stationID from the URL. Should be something like: https://region04eu5.fusionsolar.huawei.com/pvmswebsite/assets/build/index.html#/view/station/NE=12345678/overview and you need to get the "NE-12345678" ID and save it in the config file
     4. solarLocation should be the location of your charging point
-    5. MONGO_DB_URI is a mongodb connection URI where  we store cached tokens and cookies
+    5. MONGO_DB_URI is a mongodb connection URI where  we store cached tokens and cookies (more bellow)
 3. Create a https://genez.io/ account, install the CLI tool: https://docs.genez.io/genezio-documentation/getting-started/install-the-genezio-cli and sign in
 4. Run "genezio deploy" in the current folder
 5. Enjoy!
+
+How to get that MONGO_DB_URI:
+
+1. Go to https://www.mongodb.com/
+2. Create an account (if you don't already have one)
+3. Create an organization (if one was not automatically created)
+4. Create a project (if one was not automatically created)
+5. Create a database (M0, free is enough). This will create a cluster, and you will enter a user/password at some point
+6. Under Deployment / Security / Network Access click "Add IP Address" and choose to Allow Access From Anywhere
+7. Under Deployment / Database section, you will see our cluster. Click "Connect" and choose "connect your application"
+8. The connection string is the MONGO_DB_URI you have to write back to the "default.json" file. Just remember to enter your password.
