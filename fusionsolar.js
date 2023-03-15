@@ -17,9 +17,8 @@ var credentials = {}
 var stationId
 var c = {}
 var signedIn = false
-var MONGO_DB_URI
+var MONGO_DB_URI = "****** YOUR MONGODB URI *****"
 var McModel
-
 
 function getCookies(domain) {
     var cStr = '';
@@ -36,6 +35,7 @@ function setMongoDBUri(uri) {
 }
 
 async function initMongo() {
+    if (MONGO_DB_URI.indexOf("YOUR MONGODB URI") != -1) return;
     if (!McModel) {
         //console.log("fusionsolar: init mongo connection")
         await mongoose.connect(MONGO_DB_URI);
@@ -99,15 +99,17 @@ async function signIn() {
 
     // try getting the cookies from mongo
     await initMongo();
-    const mc = await McModel.find()
-    if(mc[0]) {
-        //console.log("Fusionsolar: reusing cookies from mongo");
-        try {
-            c = JSON.parse(mc[0].cookiesStr)
-            return;
-        } catch {
-            console.log("Fusionsolar: failed reusing cookies from mongo");
-            McModel.deleteMany();
+    if (McModel) {
+        const mc = await McModel.find()
+        if(mc[0]) {
+            //console.log("Fusionsolar: reusing cookies from mongo");
+            try {
+                c = JSON.parse(mc[0].cookiesStr)
+                return;
+            } catch {
+                console.log("Fusionsolar: failed reusing cookies from mongo");
+                McModel.deleteMany();
+            }
         }
     }
 
@@ -128,9 +130,11 @@ async function signIn() {
     await request("POST", 'https://eu5.fusionsolar.huawei.com/unisso/v3/validateUser.action?timeStamp=' + response.data.timeStamp + '&nonce=' + getSecureRandom(), {}, encryptedCredentials);
     await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/neteco/syscfg/v1/homepage?from=LOGIN');
 
-    console.log("Fusionsolar: saving cookies to mongo");
-    await McModel.deleteMany()
-    await McModel.create({cookiesStr: JSON.stringify(c)})
+    if (McModel) {
+        console.log("Fusionsolar: saving cookies to mongo");
+        await McModel.deleteMany()
+        await McModel.create({cookiesStr: JSON.stringify(c)})
+    }
   
     signedIn = true;
 }
@@ -140,27 +144,6 @@ async function getStationDetails() {
     var response = await request('GET', 'https://region04eu5.fusionsolar.huawei.com/rest/pvms/web/station/v1/overview/energy-flow?stationDn=' + stationId);
     return response.data;
 }
-
-/*
-axios.interceptors.request.use(request => {
-    console.log(request.method + " " + request.url);
-    for (var hk in request.headers) {
-        console.log("   " + hk + ": " + request.headers[hk]);
-    }
-    console.log('');
-    return request;
-});  
-
-axios.interceptors.response.use(response => {
-    console.log("Response: " + response.status);
-
-    for (var hk in response.headers) {
-        console.log("   " + hk + ": " + response.headers[hk]);
-    }
-    console.log('');
-    return response;
-});
-*/
 
 async function getRealTimeDetails(retied = false) {
     var sl = await getStationDetails();
@@ -181,7 +164,8 @@ async function getRealTimeDetails(retied = false) {
     } catch(e) {
         // sign in expired
         signedIn = false;
-        await McModel.deleteMany();
+        if (McModel)
+            await McModel.deleteMany();
         c = {};
         if (!retied) {
             console.log("Fusionsolar: sign in cookies expired. Retrying.")
@@ -197,4 +181,4 @@ export const fusionsolar = {
     setCredentials,
     getRealTimeDetails,
     setMongoDBUri
-};
+}

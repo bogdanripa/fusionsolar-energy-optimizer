@@ -7,7 +7,7 @@ var refreshToken
 var accessToken
 var vID
 var chargeState
-var MONGO_DB_URI
+var MONGO_DB_URI = "****** YOUR MONGODB URI *****"
 var MatModel
 
 function sleep(ms) {
@@ -24,6 +24,7 @@ function setMongoDBUri(uri) {
 }
 
 async function initMongo() {
+  if (MONGO_DB_URI.indexOf("YOUR MONGODB URI") != -1) return;
   if (!MatModel) {
     //console.log("Tesla: init mongo connection")
     await mongoose.connect(MONGO_DB_URI);
@@ -53,7 +54,8 @@ async function request(method, uri, data = {}, retried = false) {
       console.log("Tesla: access token expired");
       // access token expired
       accessToken = undefined;
-      await MatModel.deleteMany();
+      if (MatModel)
+        await MatModel.deleteMany();
       return request(method, uri, data, true);
     }
     console.log("Error calling " + newUri)
@@ -68,16 +70,16 @@ async function authenticate() {
 
   // try getting the access token from mongo
   await initMongo();
-  const mats = await MatModel.find()
-  if(mats[0]) {
-    //console.log("Tesla: reusing token from mongo");
-    accessToken = mats[0].accessToken
-    vID = mats[0].vID
-    return;
+  if (MatModel) {
+    const mats = await MatModel.find()
+    if(mats[0]) {
+      //console.log("Tesla: reusing token from mongo");
+      accessToken = mats[0].accessToken
+      vID = mats[0].vID
+      return;
+    }
   }
 
-  //console.log("Tesla: authenticating");
-  
   var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
@@ -90,10 +92,11 @@ async function authenticate() {
   if (!vID)
     vID = (await request('GET', '/vehicles', {}, true))[0].id;
 
-  console.log("Tesla: saving token to mongo");
-  await MatModel.deleteMany()
-  await MatModel.create({accessToken: accessToken, vID: vID})
-  
+  if (MatModel) {
+    console.log("Tesla: saving token to mongo");
+    await MatModel.deleteMany()
+    await MatModel.create({accessToken: accessToken, vID: vID})
+  }
 }
 
 async function wakeUp(maxRetries = 30) {
