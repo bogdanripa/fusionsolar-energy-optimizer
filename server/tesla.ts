@@ -24,7 +24,7 @@ class Tesla {
       Tesla.m = new Mongo(uri, 'tesla')
   }
   
-  async request(method:string, uri:string, data:any = {}):Promise<any> {
+  async #request(method:string, uri:string, data:any = {}):Promise<any> {
     await this.authenticate();
   
     if (this.VIN)
@@ -37,7 +37,6 @@ class Tesla {
     try {
       var response = await axios.request({
         method: method,
-//        url: 'https://owner-api.teslamotors.com/api/1' + uri,
         url: 'https://fleet-api.prd.eu.vn.cloud.tesla.com/api/1' + uri,
         headers: headers,
         data: data
@@ -47,12 +46,13 @@ class Tesla {
         console.log("Tesla: access token expired");
         // access token expired
         this.account.accessToken = "expired";
-        return this.request(method, uri, data);
+        return this.#request(method, uri, data);
       }
       if (e.response && e.response.status == 408) {
         throw new Error("Car is sleeping")
       }
       console.log("Error calling " + uri)
+      console.log(e.response.status + " / " + e.response.statusText)
       throw e
     }
     return response.data.response;
@@ -95,7 +95,7 @@ class Tesla {
       throw new Error("wakeup failed, giving up")
     }
   
-    var wakeUpR = await this.request('POST', '/vehicles/{VIN}/wake_up');  
+    var wakeUpR = await this.#request('POST', '/vehicles/{VIN}/wake_up');  
     if (wakeUpR.state == 'online') {
       await this.cacheVehicleData();
       return;
@@ -122,18 +122,27 @@ class Tesla {
   }
 
   async setChargeAmps(amps: number) {
-    await this.request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
+    await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
     await this.cacheVehicleData(true);
   }
   
   async stopCharging() {
-    await this.request("POST", "/vehicles/{VIN}/command/charge_stop");
+    await this.#request("POST", "/vehicles/{VIN}/command/charge_stop");
     await this.cacheVehicleData(true);
   }
 
   async startCharging() {
-    await this.request("POST", "/vehicles/{VIN}/command/charge_start");
+    await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
     await this.cacheVehicleData(true);
+  }
+
+  async setLock(lock: boolean) {
+    await this.#request("POST", "/vehicles/{VIN}/command/door_"+(lock?"":"un")+"lock");
+    await this.cacheVehicleData(true);
+  }
+
+  async flashLights() {
+    await this.#request("POST", "/vehicles/{VIN}/command/flash_lights");
   }
   
   async getChargeLimit() {
@@ -143,13 +152,13 @@ class Tesla {
   async cacheVehicleData(force:boolean=false) {
     if (force) this.vehicleData = undefined;
     if (this.vehicleData) return;
-    this.vehicleData = await this.request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+    this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
     if (Tesla.m && this.VIN)
       await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open})
   }
 
   async getVehicleList() {
-    const vehicles = await this.request("GET", "/products/");
+    const vehicles = await this.#request("GET", "/products/");
     // Transform the array to only contain the VINs
     const vins = vehicles.map((vehicle:any) => vehicle.vin);
     return vins;

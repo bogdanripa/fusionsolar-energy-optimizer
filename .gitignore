@@ -8,3 +8,4 @@ config/default.json
 server/.env
 server/.env
 /server/build
+vehicle-command/

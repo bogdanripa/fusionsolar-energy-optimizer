@@ -20,8 +20,9 @@ test().then(async () => {
         for (const vin of vl) {
             let t = new Tesla(vin, account)
             t.setMongoDBUri(process.env.MONGO_DB_URI)
-            t.wakeUp();
-            t.setChargeAmps(5);
+            await t.wakeUp();
+            await t.flashLights();
+            await t.setLock(false);
         }
     }   
 })
