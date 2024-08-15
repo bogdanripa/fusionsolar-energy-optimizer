@@ -1,17 +1,14 @@
-name: fusionsolar-energy-optimizer
+name: fusionsolar-energy-optimizer-2
 region: us-east-1
-cloudProvider: aws
-sdk:
-  language: js
-  options:
-    runtime: node
-  path: ./sdk/
-classes:
-  - path: index.js
-    type: jsonrpc
-    methods:
-      - name: "optimize"
-        type: cron
-        cronString: "2/5 * * * *"
-      - name: "optimize"
-        type: jsonrpc
+language: ts
+cloudProvider: genezio
+scripts:
+  preBackendDeploy: npm install
+  preStartLocal: cd server && npm install
+frontend:
+  path: client
+  subdomain: aquamarine-deafening-roundworm
+packageManager: npm
+workspace:
+  backend: server
+  frontend: client

@@ -1,0 +1,11 @@
+{
+    "usedWatts": {
+        "startAmp": 3.5,
+        "incrementalAmp": 1.9,
+        "upperLimit": 0.5
+    },
+    "teslaAmps": {
+        "min": 5,
+        "max": 32
+    }
+}

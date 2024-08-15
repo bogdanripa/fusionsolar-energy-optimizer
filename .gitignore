@@ -4,3 +4,7 @@ sdk/fusionsolarEnergyOptimizer.sdk.js
 package-lock.json
 node_modules
 config/default.json
+/server/build
+server/.env
+server/.env
+/server/build
