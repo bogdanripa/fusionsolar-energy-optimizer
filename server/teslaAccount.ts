@@ -77,13 +77,13 @@ class TeslaAccount {
       })
     } catch(e:any){
       if (e.response.status == 401) {
-        console.log("Tesla: access token expired");
+        console.log("Tesla: access token expired!");
         // access token expired
         this.accessToken = "expired";
         return this.request(method, uri, data);
       }
       console.log("Error calling " + uri)
-       throw e
+      throw e
     }
     return response.data.response;
   }
@@ -103,15 +103,20 @@ class TeslaAccount {
     }
   
     try {
+      console.log('POST http://auth.tesla.com/oauth2/v3/token')
+      console.log('grant_type=refresh_token')
+      console.log('refresh_token=' + this.refreshToken)
+      console.log('client_id=' + process.env.TESLA_CLIENT_ID)
       var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
         grant_type: 'refresh_token',
         refresh_token: this.refreshToken,
-        client_id: process.env.tesla_client_id
+        client_id: process.env.TESLA_CLIENT_ID
       });
     
       this.accessToken = response.data.access_token;
       this.refreshToken = response.data.refresh_token;
     } catch(e:any) {
+      console.log("Error refreshing Tesla token")
       console.log(e.message);
       return;
     }
@@ -128,8 +133,11 @@ class TeslaAccount {
   }
 
   async getAllAccounts() {
-    if (TeslaAccount.m)
+    if (TeslaAccount.m) {
       return await TeslaAccount.m.getAll()
+    } else {
+      throw("MongoDB not set")
+    }
   }
 
   async cacheTokens() {

@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import TeslaAccount from './teslaAccount.js'
 import Tesla from './tesla.js'
-
 
 async function test(): Promise<string> {
     // Simulate some asynchronous operation, replace with your bogus logic
@@ -16,13 +16,21 @@ test().then(async () => {
     for (const account of al) {
         ta = new TeslaAccount(account['_id'])
         ta.setMongoDBUri(process.env.MONGO_DB_URI)
-        const vl = await ta.getVehicleList();
+        let vl;
+        try {
+            vl = await ta.getVehicleList();
+        } catch(e:any) {
+            console.log("Error getting vehicle list for account " + account['_id'])
+            console.log(e.message)
+            continue;
+        }
         for (const vin of vl) {
             let t = new Tesla(vin, account)
             t.setMongoDBUri(process.env.MONGO_DB_URI)
-            await t.wakeUp();
-            await t.flashLights();
-            await t.setLock(false);
+            console.log(t.VIN);
+            // await t.wakeUp();
+            // await t.flashLights();
+            // await t.setLock(false);
         }
     }   
 })

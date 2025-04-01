@@ -76,7 +76,7 @@ class Tesla {
       var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
         grant_type: 'refresh_token',
         refresh_token: this.account.refreshToken,
-        client_id: process.env.tesla_client_id
+        client_id: process.env.TESLA_CLIENT_ID
       });
     
       this.account.accessToken = response.data.access_token;

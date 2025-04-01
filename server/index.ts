@@ -154,7 +154,7 @@ export class FusionsolarEnergyOptimizer {
         if (request.queryStringParameters) {
             let t:TeslaAccount = new TeslaAccount(this.#generateGUID())
             t.setMongoDBUri(process.env.MONGO_DB_URI)
-            let rt = await t.obtainRefreshToken(process.env.tesla_client_id, process.env.tesla_client_secret, request.queryStringParameters["code"])
+            let rt = await t.obtainRefreshToken(process.env.TESLA_CLIENT_ID, process.env.TESLA_CLIENT_SECRET, request.queryStringParameters["code"])
         }
 
         const response: GenezioHttpResponse = {
