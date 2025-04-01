@@ -95,18 +95,16 @@ class TeslaAccount {
       if (TeslaAccount.m) {
         const mats:any = await TeslaAccount.m.getById(this.id)
         if (mats) {
-          this.accessToken = mats.accessToken
           this.refreshToken = mats.refreshToken
-          return;
+          if (mats.accessToken && mats.accessToken != "expired") {
+            this.accessToken = mats.accessToken
+            return;
+          }
         }
       }
     }
-  
+
     try {
-      console.log('POST http://auth.tesla.com/oauth2/v3/token')
-      console.log('grant_type=refresh_token')
-      console.log('refresh_token=' + this.refreshToken)
-      console.log('client_id=' + process.env.TESLA_CLIENT_ID)
       var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
         grant_type: 'refresh_token',
         refresh_token: this.refreshToken,
