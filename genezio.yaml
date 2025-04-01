@@ -1,14 +1,14 @@
-name: fusionsolar-energy-optimizer-2
-region: us-east-1
-language: ts
 cloudProvider: genezio
-scripts:
-  preBackendDeploy: npm install
-  preStartLocal: cd server && npm install
 frontend:
-  path: client
-  subdomain: aquamarine-deafening-roundworm
+    path: client
+    subdomain: aquamarine-deafening-roundworm
+language: ts
+name: fusionsolar-energy-optimizer-2
 packageManager: npm
+region: eu-central-1
+scripts:
+    preBackendDeploy: npm install
+    preStartLocal: cd server && npm install
 workspace:
-  backend: server
-  frontend: client
+    backend: server
+    frontend: client
