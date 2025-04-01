@@ -9,3 +9,4 @@ server/.env
 server/.env
 /server/build
 vehicle-command/
+private-key.pem
