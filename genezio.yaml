@@ -1,24 +1,25 @@
+backend:
+    language:
+        name: ts
+        packageManager: npm
+    path: server
+    scripts:
+        deploy: npm install
+        local: npm install
+frontend:
+    path: client
+    publish: dist
+    scripts:
+        build: npm run build
+        deploy:
+            - npm install @genezio-sdk/${{projectName}}@1.0.0-${{stage}}
+            - npm install
+        start:
+            - npm install --silent
+            - npm run dev --silent
+    sdk:
+        language: ts
+    subdomain: fusionsolar-energy-optimizer
 name: fusionsolar-energy-optimizer
 region: eu-west-1
 yamlVersion: 2
-backend:
-  path: server
-  language:
-    name: ts
-    packageManager: npm
-  scripts:
-    deploy: npm install
-    local: npm install
-frontend:
-  path: client
-  sdk:
-    language: ts
-  publish: dist
-  scripts:
-    deploy:
-      - npm install @genezio-sdk/${{projectName}}@1.0.0-${{stage}}
-      - npm install
-    build: npm run build
-    start:
-      - npm install --silent
-      - npm run dev --silent
