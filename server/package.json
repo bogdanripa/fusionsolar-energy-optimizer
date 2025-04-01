@@ -17,6 +17,7 @@
     "mongoose": "^8.13.1"
   },
   "devDependencies": {
+    "@types/jsrsasign": "^10.5.15",
     "@types/node": "^22.13.15",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
