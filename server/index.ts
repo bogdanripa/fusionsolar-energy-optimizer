@@ -139,6 +139,7 @@ export class FusionsolarEnergyOptimizer {
 
     @GenezioMethod({type: "cron", cronString: "*/10 * * * *"})
     async optimizeAll() {
+        console.log("Optimizing all vehicles")
         let ta = new TeslaAccount('')
         ta.setMongoDBUri(process.env.MONGO_DB_URI)
         let al = await ta.getAllAccounts()
