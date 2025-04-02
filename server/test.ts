@@ -31,8 +31,10 @@ test().then(async () => {
             t.setMongoDBUri(process.env.MONGO_DB_URI)
             console.log(`Working with ${t.VIN}`);
             try {
-                await t.wakeUp();
-                await t.flashLights();
+                await t.cacheVehicleData(true);
+
+                // await t.wakeUp();
+                // await t.flashLights();
                 // await t.setLock(false);
             } catch(e: any) {
                 console.log("Error talking to vehicle " + vin)

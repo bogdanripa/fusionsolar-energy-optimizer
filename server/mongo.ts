@@ -29,7 +29,7 @@ class Mongo {
                             _id: { type: String, required: true }, // Explicitly setting _id type to String
                             pos: { type: Object, required: false },
                             charge_port_door_open: { type: Boolean, required: false },
-                            tesla_account: {type: String, required: true}
+                            charging_state: {type: String, required: false},
                         }));
                         break;
                     case 'tesla_accounts':

@@ -133,7 +133,15 @@ class Tesla {
   "Unknown": the charging state is unknown.
   */
   async getChargeState() {
-    return this.vehicleData.charge_state.charging_state
+    if (this.vehicleData && this.vehicleData.charge_state.charging_state) return this.vehicleData.charge_state.charging_state
+    // retrieve last known position
+    if (Tesla.m && this.VIN) {
+      const mats = await Tesla.m.getById(this.VIN)
+      if(mats && 'charging_state' in mats) {
+        return mats.charging_state;
+      }
+    }
+    throw new Error("Cannot retrieve charging state status")
   }
 
   async setChargeAmps(amps: number) {
@@ -171,9 +179,8 @@ class Tesla {
     if (!this.vehicleData) {
       this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
       if (Tesla.m && this.VIN)
-        await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open})
+        await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open, charging_state: this.vehicleData.charge_state.charging_state});
     }
-    console.log(`${this.VIN} is at ${this.vehicleData.drive_state.latitude}:${this.vehicleData.drive_state.longitude}, with the charging port ${this.vehicleData.charge_state.charge_port_door_open ? "opened" : "closed"}`);
   }
 
   async getVehicleList() {

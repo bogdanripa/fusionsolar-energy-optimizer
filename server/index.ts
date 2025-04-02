@@ -72,6 +72,12 @@ export class FusionsolarEnergyOptimizer {
             console.log(VIN + ": closest to " + closestStation.name)
             var fusion = await fusionsolar.getRealTimeDetails(closestStation.dn)
             console.log(closestStation.name + ": solar production is " + fusion.producing + ", using " + fusion.using);
+            var cs = await teslas[VIN].getChargeState();
+            if (cs != 'Charging' && fusion.producing < fusion.using) {
+                console.log(VIN + ": solar production is less than using, and the car is not charging. Nothing to do.")
+                return;
+            }
+
             console.log(VIN + ": waking up and get details")
             try {
                 await teslas[VIN].wakeUp();
@@ -79,7 +85,7 @@ export class FusionsolarEnergyOptimizer {
                 console.log(VIN + ": " + e.message)
                 return;
             }
-            var cs = await teslas[VIN].getChargeState()
+            cs = await teslas[VIN].getChargeState()
             var cl = await teslas[VIN].getChargeLimit()
             var amps
             var diff = cs == 'Charging'?config.usedWatts.incrementalAmp:config.usedWatts.startAmp;
