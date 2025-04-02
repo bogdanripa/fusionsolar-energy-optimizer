@@ -13,7 +13,7 @@
     "@genezio/types": "^1.0.20",
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
-    "jsrsasign": "^11.1.0",
+    "jsrsasign": "^10.6.1",
     "mongoose": "^8.13.1"
   },
   "devDependencies": {

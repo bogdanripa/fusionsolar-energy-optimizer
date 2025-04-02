@@ -24,37 +24,42 @@ test().then(async () => {
             console.log(e.message)
             continue;
         }
+        // reverse vl
+        vl = vl.reverse()
         for (const vin of vl) {
             let t = new Tesla(vin, account)
             t.setMongoDBUri(process.env.MONGO_DB_URI)
-            console.log(t.VIN);
-            // await t.wakeUp();
-            // await t.flashLights();
-            // await t.setLock(false);
+            console.log(`Working with ${t.VIN}`);
+            try {
+                await t.wakeUp();
+                await t.flashLights();
+                // await t.setLock(false);
+            } catch(e: any) {
+                console.log("Error talking to vehicle " + vin)
+                if (e.response)
+                    console.log(e.response.data.error);
+                else 
+                    console.log(e);
+                continue;
+            }
+            break;
         }
     }   
 })
 
+// import {fusionsolar} from './fusionsolar.js'
+// import Tesla from './tesla.js'
 
-/*
-import {fusionsolar} from './fusionsolar.js'
-import Tesla from './tesla.js'
+// fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
+// fusionsolar.setMongoDBUri(process.env.MONGO_DB_URI)
 
-fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
-fusionsolar.setMongoDBUri(process.env.MONGO_DB_URI)
+// console.log("Gettling stations list")
+// fusionsolar.getStationsList().then((sl: any) => {
+//     for (const s of sl) {
+//         console.log(s.name + " is " + s.latitude + " " + s.longitude);
+//     }
 
-console.log("Gettling stations list")
-fusionsolar.getStationsList().then((sl: any) => {
-    for (const s of sl) {
-        console.log(s.name + " is " + s.latitude + " " + s.longitude);
-    }
-
-
-    let t:Tesla = new Tesla()
-    t.setVIN('code')
-    t.setMongoDBUri(process.env.MONGO_DB_URI)
-    t.setRefreshToken('vin')
-});
+// });
 
 /*
 var t = new Tesla();

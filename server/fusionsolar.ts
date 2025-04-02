@@ -23,17 +23,18 @@ interface Out {
 }
 
 let credentials: Credentials
-let c:any = {}
+let cookies:any = {}
 let signedIn:boolean = false
 let m:any
+let roarand:string = ''
 
 function getCookies(domain:string) {
     let cStr = '';
-    for (let d in c) {
+    for (let d in cookies) {
         if (domain.indexOf(d) != -1) {
-            for (let cName in c[d]) {
+            for (let cName in cookies[d]) {
                 if (cStr) cStr += '; ';
-                cStr += cName + '=' + c[d][cName];
+                cStr += cName + '=' + cookies[d][cName];
             }            
         }
     }
@@ -48,22 +49,29 @@ function setMongoDBUri(uri?:string) {
 async function request(method:string, url:string, headers?:any, data?:any) {
     //console.log("Fusionsolar: " + method +" " +url)
     if (!headers) headers = {};
+    if (roarand) {
+        headers['roarand'] = roarand;
+    }
     let domain = url.replace(/^\w+:\/\//, '').replace(/\/.*$/, '');
     headers.cookie = getCookies(domain);
+    //console.log(headers);
     let response;
     try {
-         response = await axios.request({
+        //console.log(method, url, headers);
+        response = await axios.request({
             method: method,
             url: url,
             headers: headers,
             data: data,
             maxRedirects: 0
         });
+        //console.log(JSON.stringify(response.data).substr(0, 100));
     } catch(e:any) {
+       // console.log(e);
         response = e.response;
     }
 
-    if (response.headers && response.headers['set-cookie']) {
+    if (response && response.headers && response.headers['set-cookie']) {
         let cList = response.headers['set-cookie'];
         for (let cDev of cList) {
             let cName = cDev.replace(/=.*$/, '');
@@ -72,16 +80,17 @@ async function request(method:string, url:string, headers?:any, data?:any) {
             if (cDomain) cDomain = cDomain[1];
             if (!cDomain) cDomain = domain;
 
-            if (!c[cDomain]) c[cDomain] = {};
-            c[cDomain][cName] = cValue;
+            if (!cookies[cDomain]) cookies[cDomain] = {};
+            cookies[cDomain][cName] = cValue;
         }
     }
 
-    if (response.headers.location) {
+    if (response && response.headers.location) {
         let newURL = response.headers.location;
         if (newURL.match(/^\//)) {
             newURL = url.replace(/^(\w+:\/\/[^\/]*).*$/, '$1') + newURL;
         }
+        //console.log("Redirecting")
         return request("GET", newURL, {}, {});
     }
 
@@ -103,11 +112,18 @@ async function signIn() {
 
     // try getting the cookies from mongo
     try {
-        c = (await m.getById('cookies')).cookies
+        const mongoObj = (await m.getById('cookies'));
+        cookies = mongoObj.cookies;
+        roarand = mongoObj.roarand;
         return;
     } catch(e) {
         console.log("Fusionsolar: failed reusing cookies from mongo");
     }
+
+    //await request("GET", "https://eu5.fusionsolar.huawei.com/unisso/login.action", {}, {});
+
+    //const timestamp = new Date().getTime();
+    //const codeImg = await request("GET", "https://eu5.fusionsolar.huawei.com/unisso/verifycode?timestamp="+timestamp, {}, {});
 
     let response = await request("GET", 'https://eu5.fusionsolar.huawei.com/unisso/pubkey', {}, {});
     let pubKey:rs.RSAKey = rs.KEYUTIL.getKey(response.data.pubKey) as rs.RSAKey;
@@ -129,13 +145,16 @@ async function signIn() {
     } catch(e:any) {
         console.log(e.message)
     }
+    const keepAliveResponse = await request("GET", "https://uni004eu5.fusionsolar.huawei.com/rest/dpcloud/auth/v1/keep-alive", {}, {});
+    roarand = keepAliveResponse.data.payload;
+
     //await request("GET", "https://eu5.fusionsolar.huawei.com/rest/dp/web/v1/auth/on-sso-credential-ready?ticket=ST-160757-kkLY1yKMzRvjaSFz4mtddgvuHfjCGcb1HHm&regionName=region004");
     //https://eu5.fusionsolar.huawei.com/rest/dp/web/v1/auth/on-sso-credential-ready?ticket=ST-160757-kkLY1yKMzRvjaSFz4mtddgvuHfjCGcb1HHm&regionName=region004
     //https://eu5.fusionsolar.huawei.com/rest/dp/web/v1/auth/on-sso-credential-ready?ticket=ST-13977-EaZFC6QLUceIdGjH7CZtdSxWoPvfKcdYt4G&regionName=region004
     //await request('GET', 'https://uni004eu5.fusionsolar.huawei.com/rest/neteco/syscfg/v1/homepage?from=LOGIN');
 
     console.log("Fusionsolar: saving cookies to mongo");
-    await m.upsert('cookies', {cookies: c})  
+    await m.upsert('cookies', {cookies, roarand})  
     signedIn = true;
 }
 
@@ -159,7 +178,7 @@ async function getStationsList(retried:boolean=false) {
     signedIn = false;
     if (m)
          await m.deleteMany();
-    c = {};
+    cookies = {};
     if (!retried) {
         console.log("Fusionsolar: sign in cookies expired. Retrying.")
         return getStationsList(true)
@@ -194,7 +213,7 @@ async function getRealTimeDetails(stationId:string, retied = false) {
         signedIn = false;
         if (m)
             await m.deleteMany();
-        c = {};
+        cookies = {};
         if (!retied) {
             console.log("Fusionsolar: sign in cookies expired. Retrying.")
             return getRealTimeDetails(stationId, true);

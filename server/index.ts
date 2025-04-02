@@ -73,7 +73,12 @@ export class FusionsolarEnergyOptimizer {
             var fusion = await fusionsolar.getRealTimeDetails(closestStation.dn)
             console.log(closestStation.name + ": solar production is " + fusion.producing + ", using " + fusion.using);
             console.log(VIN + ": waking up and get details")
-            await teslas[VIN].wakeUp();
+            try {
+                await teslas[VIN].wakeUp();
+            } catch(e:any) {
+                console.log(VIN + ": " + e.message)
+                return;
+            }
             var cs = await teslas[VIN].getChargeState()
             var cl = await teslas[VIN].getChargeLimit()
             var amps
@@ -126,7 +131,7 @@ export class FusionsolarEnergyOptimizer {
         }
     }
 
-    @GenezioMethod({type: "cron", cronString: "10 * * * *"})
+    @GenezioMethod({type: "cron", cronString: "*/10 * * * *"})
     async optimizeAll() {
         let ta = new TeslaAccount('')
         ta.setMongoDBUri(process.env.MONGO_DB_URI)

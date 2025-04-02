@@ -67,6 +67,8 @@ class TeslaAccount {
     var headers = {
       Authorization: "Bearer " + this.accessToken
     };
+
+    console.log("Calling " + method + " " + uri)
   
     try {
       var response = await axios.request({
@@ -115,7 +117,7 @@ class TeslaAccount {
       this.refreshToken = response.data.refresh_token;
     } catch(e:any) {
       console.log("Error refreshing Tesla token")
-      console.log(e.message);
+      console.log(e.response.data);
       return;
     }
     console.log('Got new Tesla auth token')

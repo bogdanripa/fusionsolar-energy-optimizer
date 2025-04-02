@@ -1,4 +1,6 @@
 import axios from 'axios'
+import https from 'https';
+import fs from 'fs';
 import Mongo from './mongo.js'
 import TeslaAccount from './teslaAccount.js'
 
@@ -7,6 +9,7 @@ class Tesla {
   VIN:string
   account:TeslaAccount
   vehicleData?:any
+
 
   constructor(VIN:string, account:TeslaAccount) {
     this.VIN = VIN
@@ -30,16 +33,21 @@ class Tesla {
     if (this.VIN)
      uri = uri.replace("{VIN}", this.VIN);
 
+    const url = 'https://3b231535-317f-4840-869f-df84d4c47540.eu-west-1.cloud.genez.io/api/1' + uri;
+    //const url = 'http://localhost:8080/api/1' + uri;
+
     var headers = {
       Authorization: "Bearer " + this.account.accessToken
     };
+
+    console.log("Calling " + method + " " + url)
   
     try {
       var response = await axios.request({
         method: method,
-        url: 'https://fleet-api.prd.eu.vn.cloud.tesla.com/api/1' + uri,
-        headers: headers,
-        data: data
+        url,
+        headers,
+        data
       })
     } catch(e:any){
       if (e.response && e.response.status == 401) {
@@ -52,7 +60,10 @@ class Tesla {
         throw new Error("Car is sleeping")
       }
       console.log("Error calling " + uri)
-      console.log(e.response.status + " / " + e.response.statusText)
+      if (e.response)
+        console.log(e.response.status + " / " + e.response.statusText)
+      else 
+        console.log(e)
       throw e
     }
     return response.data.response;
@@ -65,9 +76,11 @@ class Tesla {
       if (Tesla.m) {
         const mats:any = await Tesla.m.getById(this.VIN)
         if (mats) {
-          this.account.accessToken = mats.accessToken
           this.account.refreshToken = mats.refreshToken
-          return;
+          if (mats.accessToken && mats.accessToken != "expired") {
+            this.account.accessToken = mats.accessToken
+            return;
+          }
         }
       }
     }
@@ -82,7 +95,8 @@ class Tesla {
       this.account.accessToken = response.data.access_token;
       this.account.refreshToken = response.data.refresh_token;
     } catch(e:any) {
-      console.log(e.message);
+      console.log("Error refreshing Tesla token")
+      console.log(e.response.data);
       return;
     }
     console.log('Got new Tesla auth token')
@@ -96,12 +110,13 @@ class Tesla {
     }
   
     var wakeUpR = await this.#request('POST', '/vehicles/{VIN}/wake_up');  
+    console.log(`${this.VIN} is ${wakeUpR.state}`);
     if (wakeUpR.state == 'online') {
       await this.cacheVehicleData();
       return;
     }
   
-    await this.sleep(1000);
+    await this.sleep(5000);
     return await this.wakeUp(maxRetries-1);
   }
 
@@ -138,11 +153,13 @@ class Tesla {
 
   async setLock(lock: boolean) {
     await this.#request("POST", "/vehicles/{VIN}/command/door_"+(lock?"":"un")+"lock");
+    console.log(`${this.VIN} is ${lock ? "locked" : "unlocked"}`);
     await this.cacheVehicleData(true);
   }
 
   async flashLights() {
     await this.#request("POST", "/vehicles/{VIN}/command/flash_lights");
+    console.log(`${this.VIN} flashed lights`);
   }
   
   async getChargeLimit() {
@@ -151,10 +168,12 @@ class Tesla {
 
   async cacheVehicleData(force:boolean=false) {
     if (force) this.vehicleData = undefined;
-    if (this.vehicleData) return;
-    this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
-    if (Tesla.m && this.VIN)
-      await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open})
+    if (!this.vehicleData) {
+      this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+      if (Tesla.m && this.VIN)
+        await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open})
+    }
+    console.log(`${this.VIN} is at ${this.vehicleData.drive_state.latitude}:${this.vehicleData.drive_state.longitude}, with the charging port ${this.vehicleData.charge_state.charge_port_door_open ? "opened" : "closed"}`);
   }
 
   async getVehicleList() {

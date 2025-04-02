@@ -42,7 +42,8 @@ class Mongo {
                     case 'fusionsolar':
                         this.MatModel = mongoose.model('fusionsolar', new mongoose.Schema({
                             _id: { type: String, required: true }, // Explicitly setting _id type to String
-                            cookies: {type: Object, required: true}
+                            cookies: {type: Object, required: true},
+                            roarand: {type: String, required: true},
                         }));
                         break;
                 }

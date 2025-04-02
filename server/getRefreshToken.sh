@@ -10,7 +10,7 @@ fi
 AUTH_URL="https://auth.tesla.com/oauth2/v3/authorize"
 TOKEN_URL="https://auth.tesla.com/oauth2/v3/token"
 TESLA_REDIRECT_URI=http://localhost:53291/callback
-SCOPE="openid vehicle_device_data offline_access vehicle_cmds vehicle_charging_cmds"
+SCOPE="openid vehicle_device_data offline_access vehicle_cmds vehicle_charging_cmds vehicle_location"
 
 ENCODED_CLIENT_ID=$(printf "%s" "${TESLA_CLIENT_ID}" | jq -sRr @uri)
 ENCODED_CLIENT_SECRET=$(printf "%s" "${TESLA_CLIENT_SECRET}" | jq -sRr @uri)
