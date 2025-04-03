@@ -15,6 +15,7 @@ class Mongo {
     async init() {
         if (!this.MONGO_DB_URI) return;
         if (!Mongo.connected) {
+            console.log('Connecting to MongoDB...');
             Mongo.connected = true;
             await mongoose.connect(this.MONGO_DB_URI);
         }
