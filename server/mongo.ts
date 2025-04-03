@@ -36,7 +36,8 @@ class Mongo {
                         this.MatModel = mongoose.model('tesla_accounts', new mongoose.Schema({
                             _id: { type: String, required: true }, // Explicitly setting _id type to String
                             refreshToken: { type: String, required: true },
-                            accessToken: { type: String, required: false }
+                            accessToken: { type: String, required: false },
+                            email: { type: String, required: true },
                         }));
                         break;
                     case 'fusionsolar':
