@@ -49,6 +49,7 @@ class Tesla {
         headers,
         data
       })
+      console.log("Response: " + response.status)
     } catch(e:any){
       if (e.response && e.response.status == 401) {
         console.log("Tesla: access token expired");
