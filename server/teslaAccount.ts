@@ -107,9 +107,10 @@ class TeslaAccount {
     }
 
     try {
+      const mats:any = await TeslaAccount.m?.getById(this.id)
       var response = await axios.post("https://auth.tesla.com/oauth2/v3/token", {
         grant_type: 'refresh_token',
-        refresh_token: this.refreshToken,
+        refresh_token: mats.refreshToken,
         client_id: process.env.TESLA_CLIENT_ID
       });
     
