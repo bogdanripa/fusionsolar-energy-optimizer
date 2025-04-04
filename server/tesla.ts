@@ -9,12 +9,13 @@ class Tesla {
   VIN:string
   account:TeslaAccount
   vehicleData?:any
-
+  apiType?:string
 
   constructor(VIN:string, account:TeslaAccount) {
     this.VIN = VIN
     this.account = account
     this.vehicleData = undefined
+    this.apiType = undefined
   }
 
   sleep(ms:number) {
@@ -33,14 +34,21 @@ class Tesla {
     if (this.VIN)
      uri = uri.replace("{VIN}", this.VIN);
 
-    const url = 'https://3b231535-317f-4840-869f-df84d4c47540.eu-west-1.cloud.genez.io/api/1' + uri;
-    //const url = 'http://localhost:8080/api/1' + uri;
+    let baseUrl = "https://fleet-api.prd.eu.vn.cloud.tesla.com/api/1/";
+    if (uri.includes("command")) {
+      await this.syncApiType();
+      if (this.apiType == "vehicle command") {
+        baseUrl = "https://3b231535-317f-4840-869f-df84d4c47540.eu-west-1.cloud.genez.io/api/1";
+      }
+    }
+
+    const url = baseUrl + uri;
 
     var headers = {
       Authorization: "Bearer " + this.account.accessToken
     };
 
-    console.log("Calling " + method + " " + url)
+    console.log("Calling " + method + " " + url, data)
   
     try {
       var response = await axios.request({
@@ -59,6 +67,11 @@ class Tesla {
       }
       if (e.response && e.response.status == 408) {
         throw new Error("Car is sleeping")
+      }
+      if (e.response && e.response.status == 403 && url.includes("fleet-api")) {
+        // change protocol
+        await this.setApiType("vehicle command");
+        return this.#request(method, uri, data);
       }
       console.log("Error calling " + uri)
       if (e.response)
@@ -201,6 +214,29 @@ class Tesla {
     }
   
     throw new Error("Cannot retrieve last position")
+  }
+
+  async syncApiType() {
+    if (this.apiType) return;
+    if (Tesla.m && this.VIN) {
+      const mats:any = await Tesla.m.getById(this.VIN)
+      if(mats && 'apiType' in mats) {
+        this.apiType = mats.apiType;
+      } else {
+        this.apiType = "legacy";
+      }
+    } else {
+      throw new Error("Cannot retrieve API type")
+    }
+  }
+
+  async setApiType(apiType:string) {
+    if (Tesla.m && this.VIN) {
+      await Tesla.m.upsert(this.VIN, {apiType: apiType});
+      this.apiType = apiType;
+    } else {
+      throw new Error("Cannot set API type")
+    }
   }
   
   async isChargePortOpen() {

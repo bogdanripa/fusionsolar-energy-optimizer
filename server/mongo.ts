@@ -31,6 +31,7 @@ class Mongo {
                             pos: { type: Object, required: false },
                             charge_port_door_open: { type: Boolean, required: false },
                             charging_state: {type: String, required: false},
+                            apiType: { type: String, required: false, default: 'legacy' },
                         }));
                         break;
                     case 'tesla_accounts':
