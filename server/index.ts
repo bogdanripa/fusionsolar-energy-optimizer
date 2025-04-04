@@ -144,6 +144,7 @@ export class FusionsolarEnergyOptimizer {
         console.log("Optimizing all vehicles")
         let ta = new TeslaAccount('')
         ta.setMongoDBUri(process.env.MONGO_DB_URI)
+        console.log("Getting all accounts")
         let al = await ta.getAllAccounts()
         for (const account of al) {
             console.log("Working with account " + account.email)
