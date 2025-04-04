@@ -114,7 +114,7 @@ class TeslaAccount {
       this.refreshToken = response.data.refresh_token;
     } catch(e:any) {
       console.log("Error refreshing Tesla token")
-      console.log(e.response.data);
+      console.log(e.response);
       return;
     }
     console.log('Got new Tesla auth token')

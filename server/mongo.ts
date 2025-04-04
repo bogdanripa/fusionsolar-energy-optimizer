@@ -1,6 +1,7 @@
 import mongoose, { Model, Document } from 'mongoose';
 
 type TeslaType = { 
+    _id: string;
     pos?: object;
     charge_port_door_open?: boolean;
     charging_state?: string;
@@ -8,23 +9,27 @@ type TeslaType = {
 };
 
 type TeslaAccount = { 
+    _id: string;
     refreshToken: string;
     accessToken?: string;
     email: string;
 };
 
 type FusionSolarType = { 
+    _id: string;
     cookies: object;
     roarand: string;
 };
 
 type AuditType = { 
+    _id: string;
     VIN: string;
     timestamp?: Date;
     action?: string;
 };
 
 const TeslaSchema = new mongoose.Schema<TeslaType>({
+    _id: { type: String, required: false },
     pos: { type: Object, required: false },
     charge_port_door_open: { type: Boolean, required: false },
     charging_state: { type: String, required: false },
@@ -32,17 +37,20 @@ const TeslaSchema = new mongoose.Schema<TeslaType>({
 });
 
 const TeslaAccountSchema = new mongoose.Schema<TeslaAccount>({
+    _id: { type: String, required: false },
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: false },
     email: { type: String, required: true },
 });
 
 const FusionSolarSchema = new mongoose.Schema<FusionSolarType>({
+    _id: { type: String, required: false },
     cookies: { type: Object, required: true },
     roarand: { type: String, required: true },
 });
 
 const AuditSchema = new mongoose.Schema<AuditType>({
+    _id: { type: String, required: false },
     VIN: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
     action: { type: String, required: false },
