@@ -21,7 +21,7 @@ class Mongo {
               await mongoose.connect(this.FUSIONSOLAR_DATABASE_URL);
             } catch(e:any) {
               console.log(JSON.stringify(e));
-              throw(new Exception("cannot connect to mongo using", this.FUSIONSOLAR_DATABASE_URL);
+              throw(new Exception("cannot connect to mongo using", this.FUSIONSOLAR_DATABASE_URL));
             }
             console.log("Connected to MongoDB");
         }
