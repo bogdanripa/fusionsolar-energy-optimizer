@@ -59,16 +59,16 @@ class Tesla {
       })
       console.log("Response: " + response.status)
     } catch(e:any){
-      if (e.response && e.response.status == 401) {
+      if (e.response?.status == 401) {
         console.log("Tesla: access token expired");
         // access token expired
         this.account.accessToken = "expired";
         return this.#request(method, uri, data);
       }
-      if (e.response && e.response.status == 408) {
+      if (e.response?.status == 408) {
         throw new Error("Car is sleeping")
       }
-      if (e.response && e.response.status == 403 && url.includes("fleet-api")) {
+      if (e.response?.status == 403 && url.includes("fleet-api")) {
         // change protocol
         await this.setApiType("vehicle command");
         return this.#request(method, uri, data);
@@ -192,6 +192,7 @@ class Tesla {
     if (force) this.vehicleData = undefined;
     if (!this.vehicleData) {
       this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+      console.log(this.vehicleData);
       if (Tesla.m && this.VIN)
         await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open, charging_state: this.vehicleData.charge_state.charging_state});
     }

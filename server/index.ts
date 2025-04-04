@@ -40,6 +40,10 @@ export class FusionsolarEnergyOptimizer {
             await teslas[VIN].cacheVehicleData(true);
         } catch(e:any) {
             console.log(VIN + ': ' + e.message)
+            if  ((new Date()).getMinutes() < 5 && (new Date()).getHours()%2 == 0) {
+                // every 2 hours, wake them up
+                await teslas[VIN].wakeUp();
+            }
         }
 
         var chargePortOpen = await teslas[VIN].isChargePortOpen()
@@ -180,6 +184,6 @@ export class FusionsolarEnergyOptimizer {
             statusCode: "200",
         };
       
-        return response;      
+        return response;
     }
 }
