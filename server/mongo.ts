@@ -15,7 +15,7 @@ class Mongo {
     async init() {
         if (!this.FUSIONSOLAR_DATABASE_URL) return;
         if (!Mongo.connected) {
-            console.log('Connecting to MongoDB');
+            console.log('Connecting to MongoDB using ' + this.FUSIONSOLAR_DATABASE_URL);
             Mongo.connected = true;
             try {
               await mongoose.connect(this.FUSIONSOLAR_DATABASE_URL);
