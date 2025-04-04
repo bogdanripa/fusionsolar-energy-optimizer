@@ -3,25 +3,25 @@ import mongoose, { Model, Document } from 'mongoose';
 class Mongo {
 
     private static connected: boolean = false;
-    private FUSIONSOLAR_DATABASE_URL: string;
+    private connectionString: string;
     private name: string;
     private MatModel?: any;
 
-    constructor(FUSIONSOLAR_DATABASE_URL: string, name: string) {
-        this.FUSIONSOLAR_DATABASE_URL = FUSIONSOLAR_DATABASE_URL;
+    constructor(connectionString: string, name: string) {
+        this.connectionString = connectionString;
         this.name = name;
     }
 
     async init() {
-        if (!this.FUSIONSOLAR_DATABASE_URL) return;
+        if (!this.connectionString) return;
         if (!Mongo.connected) {
-            console.log('Connecting to MongoDB using ' + this.FUSIONSOLAR_DATABASE_URL);
+            console.log('Connecting to MongoDB using ' + this.connectionString);
             Mongo.connected = true;
             try {
-              await mongoose.connect(this.FUSIONSOLAR_DATABASE_URL);
+              await mongoose.connect(this.connectionString);
             } catch(e:any) {
               console.log(JSON.stringify(e));
-              throw new Error(`Cannot connect to MongoDB using ${this.FUSIONSOLAR_DATABASE_URL}`);
+              throw new Error(`Cannot connect to MongoDB using ${this.connectionString}`);
             }
             console.log("Connected to MongoDB");
         }
