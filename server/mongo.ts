@@ -3,27 +3,40 @@ import mongoose, { Model, Document } from 'mongoose';
 class Mongo {
 
     private static connected: boolean = false;
-    private connectionString: string;
+    private static connecting: boolean = false;
     private name: string;
     private MatModel?: any;
 
-    constructor(connectionString: string, name: string) {
-        this.connectionString = connectionString;
+    constructor(name: string) {
         this.name = name;
     }
 
     async init() {
-        if (!this.connectionString) return;
         if (!Mongo.connected) {
-            console.log('Connecting to MongoDB using ' + this.connectionString);
-            Mongo.connected = true;
-            try {
-              await mongoose.connect(this.connectionString);
-            } catch(e:any) {
-              console.log(JSON.stringify(e));
-              throw new Error(`Cannot connect to MongoDB using ${this.connectionString}`);
+            console.log('Connecting to MongoDB using ' + process.env.FUSIONSOLAR_DATABASE_URL);
+            if (Mongo.connecting) {
+                let nChecks = 0;
+                while (Mongo.connecting && nChecks < 10) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    nChecks++;
+                }
+                if (Mongo.connecting) {
+                    console.log("MongoDB connection timed out");
+                    throw new Error(`Waiting for MongoDB to be connected timed out after ${nChecks} seconds.`);
+                }
+            } else {
+                Mongo.connecting = true;
+                try {
+                    await mongoose.connect(process.env.FUSIONSOLAR_DATABASE_URL || '');
+                } catch(e:any) {
+                    console.log("MongoDB connection error:", e);
+                    Mongo.connecting = false;
+                    throw new Error(`Cannot connect to MongoDB using ${process.env.FUSIONSOLAR_DATABASE_URL}`);
+                }
+                console.log("Connected to MongoDB");
+                Mongo.connected = true;
+                Mongo.connecting = false;
             }
-            console.log("Connected to MongoDB");
         }
 
         if (!this.MatModel) {

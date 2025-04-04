@@ -9,6 +9,8 @@ class TeslaAccount {
 
   constructor(id:string) {
     this.id=id;
+    if (!TeslaAccount.m)
+      TeslaAccount.m = new Mongo('tesla_accounts')
   }
 
   async obtainRefreshToken(client_id?:string, client_secret?:string, code?:string) {
@@ -53,12 +55,6 @@ class TeslaAccount {
     } catch (e:any) {
         throw(e.message)
     }
-  }
-
-  setMongoDBUri(uri?:string) {
-    if (!uri) return;
-    if (!TeslaAccount.m)
-        TeslaAccount.m = new Mongo(uri, 'tesla_accounts')
   }
   
   async request(method:string, uri:string, data:any = {}):Promise<any> {

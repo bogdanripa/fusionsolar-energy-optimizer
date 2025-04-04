@@ -11,11 +11,9 @@ async function test(): Promise<string> {
 
 test().then(async () => {
     let ta = new TeslaAccount('')
-    ta.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
     let al = await ta.getAllAccounts()
     for (const account of al) {
         ta = new TeslaAccount(account['_id'])
-        ta.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
         let vl;
         try {
             vl = await ta.getVehicleList();
@@ -28,7 +26,6 @@ test().then(async () => {
         vl = vl.reverse()
         for (const vin of vl) {
             let t = new Tesla(vin, account)
-            t.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
             console.log(`Working with ${t.VIN}`);
             try {
                 await t.cacheVehicleData(true);
@@ -53,7 +50,7 @@ test().then(async () => {
 // import Tesla from './tesla.js'
 
 // fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
-// fusionsolar.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
+// fusionsolar.initMongo()
 
 // console.log("Gettling stations list")
 // fusionsolar.getStationsList().then((sl: any) => {
@@ -70,7 +67,7 @@ t.getVehicleList().then(async (vl: any) => {
     console.log(vl)
 
     t.setVIN(vl[0])
-    t.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
+    t.initMongo()
     await t.wakeUp();
     await t.cacheVehicleData(true);
     var pos = await t.getPosition();

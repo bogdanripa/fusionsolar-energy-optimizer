@@ -26,14 +26,13 @@ export class FusionsolarEnergyOptimizer {
         console.log("Constructor called!")
 
         fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
-        fusionsolar.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
+        fusionsolar.initMongo()
     }
 
     async #optimize(VIN:string, account:TeslaAccount) {
         console.log(VIN + ': optimizing');
         if (!teslas[VIN]) {
             teslas[VIN] = new Tesla(VIN, account)
-            teslas[VIN].setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
         }
 
         try {
@@ -147,13 +146,11 @@ export class FusionsolarEnergyOptimizer {
     async optimizeAll() {
         console.log("Optimizing all vehicles")
         let ta = new TeslaAccount('')
-        ta.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
         console.log("Getting all accounts")
         let al = await ta.getAllAccounts()
         for (const account of al) {
             console.log("Working with account " + account.email)
             ta = new TeslaAccount(account['_id'])
-            ta.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
             const vl = await ta.getVehicleList();
             for (const vin of vl) {
                 await this.#optimize(vin, ta)
@@ -173,9 +170,8 @@ export class FusionsolarEnergyOptimizer {
     async redirect(request: GenezioHttpRequest): Promise<GenezioHttpResponse> {
 
         if (request.queryStringParameters) {
-            let t:TeslaAccount = new TeslaAccount(this.#generateGUID())
-            t.setMongoDBUri(process.env.FUSIONSOLAR_DATABASE_URL)
-            let rt = await t.obtainRefreshToken(process.env.TESLA_CLIENT_ID, process.env.TESLA_CLIENT_SECRET, request.queryStringParameters["code"])
+            let ta:TeslaAccount = new TeslaAccount(this.#generateGUID())
+            let rt = await ta.obtainRefreshToken(process.env.TESLA_CLIENT_ID, process.env.TESLA_CLIENT_SECRET, request.queryStringParameters["code"])
         }
 
         const response: GenezioHttpResponse = {

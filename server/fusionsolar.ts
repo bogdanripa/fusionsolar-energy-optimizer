@@ -41,9 +41,9 @@ function getCookies(domain:string) {
     return cStr;
 }
 
-function setMongoDBUri(uri?:string) {
-    if (!m && uri)
-        m = new Mongo(uri, 'fusionsolar')
+function initMongo() {
+    if (!m)
+        m = new Mongo('fusionsolar')
 }
 
 async function request(method:string, url:string, headers?:any, data?:any) {
@@ -228,5 +228,5 @@ export const fusionsolar = {
     setCredentials,
     getRealTimeDetails,
     getStationsList,
-    setMongoDBUri
+    initMongo
 }

@@ -16,18 +16,14 @@ class Tesla {
     this.account = account
     this.vehicleData = undefined
     this.apiType = undefined
+    if (!Tesla.m)
+      Tesla.m = new Mongo('tesla')
   }
 
   sleep(ms:number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  setMongoDBUri(uri?:string) {
-    if (!uri) return;
-    if (!Tesla.m)
-      Tesla.m = new Mongo(uri, 'tesla')
-  }
-  
   async #request(method:string, uri:string, data:any = {}):Promise<any> {
     await this.authenticate();
   
