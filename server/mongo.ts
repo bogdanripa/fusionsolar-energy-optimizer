@@ -3,21 +3,21 @@ import mongoose, { Model, Document } from 'mongoose';
 class Mongo {
 
     private static connected: boolean = false;
-    private MONGO_DB_URI: string;
+    private FUSIONSOLAR_DATABASE_URL: string;
     private name: string;
     private MatModel?: any;
 
-    constructor(MONGO_DB_URI: string, name: string) {
-        this.MONGO_DB_URI = MONGO_DB_URI;
+    constructor(FUSIONSOLAR_DATABASE_URL: string, name: string) {
+        this.FUSIONSOLAR_DATABASE_URL = FUSIONSOLAR_DATABASE_URL;
         this.name = name;
     }
 
     async init() {
-        if (!this.MONGO_DB_URI) return;
+        if (!this.FUSIONSOLAR_DATABASE_URL) return;
         if (!Mongo.connected) {
             console.log('Connecting to MongoDB');
             Mongo.connected = true;
-            await mongoose.connect(this.MONGO_DB_URI);
+            await mongoose.connect(this.FUSIONSOLAR_DATABASE_URL);
             console.log("Connected to MongoDB");
         }
 
@@ -48,6 +48,14 @@ class Mongo {
                             _id: { type: String, required: true }, // Explicitly setting _id type to String
                             cookies: {type: Object, required: true},
                             roarand: {type: String, required: true},
+                        }));
+                        break;
+                    case 'audit':
+                        this.MatModel = mongoose.model('audit', new mongoose.Schema({
+                            _id: { type: String, required: true }, // Explicitly setting _id type to String
+                            VIN: { type: String, required: true },
+                            timestamp: { type: Date, default: Date.now },
+                            action: { type: String, required: false },
                         }));
                         break;
                 }
