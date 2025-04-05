@@ -64,7 +64,7 @@ class TeslaAccount {
       Authorization: "Bearer " + this.accessToken
     };
 
-    console.log("Calling " + method + " " + uri)
+    //console.log("Calling " + method + " " + uri)
   
     try {
       var response = await axios.request({

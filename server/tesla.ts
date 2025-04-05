@@ -44,7 +44,7 @@ class Tesla {
       Authorization: "Bearer " + this.account.accessToken
     };
 
-    console.log("Calling " + method + " " + url, data)
+    //console.log("Calling " + method + " " + url, data)
   
     try {
       var response = await axios.request({
@@ -53,7 +53,7 @@ class Tesla {
         headers,
         data
       })
-      console.log("Response: " + response.status)
+      //console.log("Response: " + response.status)
     } catch(e:any){
       if (e.response?.status == 401) {
         console.log("Tesla: access token expired");
@@ -188,7 +188,6 @@ class Tesla {
     if (force) this.vehicleData = undefined;
     if (!this.vehicleData) {
       this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
-      console.log(this.vehicleData);
       if (Tesla.m && this.VIN)
         await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open, charging_state: this.vehicleData.charge_state.charging_state});
     }
