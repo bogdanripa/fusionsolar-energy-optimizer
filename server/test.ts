@@ -10,9 +10,14 @@ for (const account of al) {
     console.log("Working with account " + account.email)
     ta = new TeslaAccount(account['_id'])
     const vl = await ta.getVehicleList();
-    for (const vin of vl) {
-        console.log("Working with vehicle " + vin)
-        let t = new Tesla(vin, ta)
-        await t.wakeUp();
+    for (const VIN of vl) {
+        console.log("Working with vehicle " + VIN)
+        let t = new Tesla(VIN, ta)
+        try {
+            await t.cacheVehicleData(true);
+            console.log(VIN + ": " + t.vehicleData.state)
+        } catch(e:any) {
+            console.log(VIN + ': ' + e.message)
+        }
     }
 }
