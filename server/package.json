@@ -14,7 +14,8 @@
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "jsrsasign": "^10.6.1",
-    "mongoose": "^8.13.1"
+    "mongoose": "^8.13.1",
+    "protobufjs": "^7.4.0"
   },
   "devDependencies": {
     "@types/jsrsasign": "^10.5.15",

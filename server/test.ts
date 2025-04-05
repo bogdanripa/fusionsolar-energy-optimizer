@@ -1,83 +1,18 @@
 import 'dotenv/config';
+
 import TeslaAccount from './teslaAccount.js'
 import Tesla from './tesla.js'
 
-async function test(): Promise<string> {
-    // Simulate some asynchronous operation, replace with your bogus logic
-    await new Promise((resolve) => setTimeout(() => resolve('test'), 1));
-    return 'test';
-  }
-  
-
-test().then(async () => {
-    let ta = new TeslaAccount('')
-    let al = await ta.getAllAccounts()
-    for (const account of al) {
-        ta = new TeslaAccount(account['_id'])
-        let vl;
-        try {
-            vl = await ta.getVehicleList();
-        } catch(e:any) {
-            console.log("Error getting vehicle list for account " + account['_id'])
-            console.log(e.message)
-            continue;
-        }
-        // reverse vl
-        vl = vl.reverse()
-        for (const vin of vl) {
-            let t = new Tesla(vin, account)
-            console.log(`Working with ${t.VIN}`);
-            try {
-                await t.cacheVehicleData(true);
-
-                // await t.wakeUp();
-                // await t.flashLights();
-                // await t.setLock(false);
-            } catch(e: any) {
-                console.log("Error talking to vehicle " + vin)
-                if (e.response)
-                    console.log(e.response.data.error);
-                else 
-                    console.log(e);
-                continue;
-            }
-            break;
-        }
-    }   
-})
-
-// import {fusionsolar} from './fusionsolar.js'
-// import Tesla from './tesla.js'
-
-// fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
-// fusionsolar.initMongo()
-
-// console.log("Gettling stations list")
-// fusionsolar.getStationsList().then((sl: any) => {
-//     for (const s of sl) {
-//         console.log(s.name + " is " + s.latitude + " " + s.longitude);
-//     }
-
-// });
-
-/*
-var t = new Tesla();
-
-t.getVehicleList().then(async (vl: any) => {
-    console.log(vl)
-
-    t.setVIN(vl[0])
-    t.initMongo()
-    await t.wakeUp();
-    await t.cacheVehicleData(true);
-    var pos = await t.getPosition();
-    console.log(pos)
-        
-    var chargePortOpen = await t.isChargePortOpen()
-    console.log(chargePortOpen)
-});
-
-*/
-
-
-// https://auth.tesla.com/oauth2/v3/authorize?&client_id=2bed662ba551-4570-b3a0-c48d0fdd7ed8&locale=en-US&prompt=login&redirect_uri=https://v3nbfm65nmaem2b5axu2b7vgte0qcmxg.lambda-url.us-east-1.on.aws/FusionsolarEnergyOptimizer/redirect&response_type=code&scope=openid%20vehicle_device_data%20offline_access&state=1234
+let ta = new TeslaAccount('')
+console.log("Getting all accounts")
+let al = await ta.getAllAccounts()
+for (const account of al) {
+    console.log("Working with account " + account.email)
+    ta = new TeslaAccount(account['_id'])
+    const vl = await ta.getVehicleList();
+    for (const vin of vl) {
+        console.log("Working with vehicle " + vin)
+        let t = new Tesla(vin, ta)
+        await t.wakeUp();
+    }
+}

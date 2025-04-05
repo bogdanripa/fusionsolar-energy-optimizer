@@ -51,10 +51,11 @@ export class FusionsolarEnergyOptimizer {
             return
         }
         var pos = await teslas[VIN].getPosition();
+        console.log(VIN + ": is at " + pos.lat + ", " + pos.long)
+        
         var sList = await fusionsolar.getStationsList();
         let closestStation: Station | undefined = undefined;
 
-        console.log(VIN + ": is at " + pos.lat + ", " + pos.long)
 
         for (const station of sList) {
             station.sqDistance = Math.abs(station.latitude - pos.lat) * Math.abs(station.longitude - pos.long);
@@ -153,7 +154,12 @@ export class FusionsolarEnergyOptimizer {
             ta = new TeslaAccount(account['_id'])
             const vl = await ta.getVehicleList();
             for (const vin of vl) {
-                await this.#optimize(vin, ta)
+                try {
+                    await this.#optimize(vin, ta)
+                } catch(e:any) {
+                    console.log(vin + ": " + e.message)
+                    console.log(e);
+                }
             }
         }
         console.log("Done optimizing all vehicles")
