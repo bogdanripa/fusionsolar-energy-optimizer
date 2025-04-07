@@ -59,12 +59,9 @@ const AuditSchema = new mongoose.Schema<AuditType>({
 class Mongo {
 
     private static connected: boolean = false;
-    private static connecting: boolean = false;
-    private name: string;
     private MatModel?: any;
 
     constructor(name: string) {
-        this.name = name;
         if (!Mongo.connected) {
             Mongo.connected = true;
             console.log('MongoDB not connected yet, initializing connection...');
@@ -121,7 +118,19 @@ class Mongo {
         return doc;
     }
 
+    async waitForConnection(timeoutMs = 10000) {
+        const start = Date.now();
+        while (mongoose.connection.readyState !== 1) {
+            console.log(`Mongo connection is ${mongoose.connection.readyState}, waiting...`);
+            if (Date.now() - start > timeoutMs) {
+                throw new Error('MongoDB connection timeout');
+            }
+            await new Promise(res => setTimeout(res, 500));
+        }
+    }
+
     async getAll() {
+        await this.waitForConnection();
         const docs = await this.MatModel.find({});
         return docs;
     }

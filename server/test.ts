@@ -15,7 +15,7 @@ for (const account of al) {
         let t = new Tesla(VIN, ta)
         try {
             await t.cacheVehicleData(true);
-            console.log(VIN + ": " + t.vehicleData.state)
+            console.log(VIN + ": Car is " + t.vehicleData.state)
         } catch(e:any) {
             console.log(VIN + ': ' + e.message)
         }
