@@ -1,5 +1,12 @@
 import mongoose, { Model, Document } from 'mongoose';
 
+const stateToString = {
+    0: 'Disconnected',
+    1: 'Connected',
+    2: 'Connecting',
+    3: 'Disconnecting',
+};  
+
 type TeslaType = { 
     _id: string;
     pos?: object;
@@ -123,7 +130,7 @@ class Mongo {
     async waitForConnection(timeoutMs = 10000) {
         const start = Date.now();
         while (mongoose.connection.readyState !== 1) {
-            console.log(`Mongo connection is ${mongoose.connection.readyState}, waiting...`);
+            console.log(`Mongo connection is ${stateToString[mongoose.connection.readyState as keyof typeof stateToString]}, waiting...`);
             if (Date.now() - start > timeoutMs) {
                 throw new Error('MongoDB connection timeout');
             }
