@@ -64,9 +64,11 @@ class Mongo {
     constructor(name: string) {
         if (!Mongo.connected) {
             Mongo.connected = true;
-            console.log('MongoDB not connected yet, initializing connection...');
+            console.log(`MongoDB (${name}) not connected yet, initializing connection...`);
             mongoose.connect(process.env.FUSIONSOLAR_DATABASE_URL || '');
-            console.log('MongoDB connection initialized.');
+            console.log(`MongoDB (${name}) connection initialized.`);
+        } else {
+            console.log(`MongoDB (${name}): someone else initiated the connection`);
         }
 
         switch (name) {
