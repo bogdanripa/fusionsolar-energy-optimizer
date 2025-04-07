@@ -10,3 +10,4 @@ server/.env
 /server/build
 vehicle-command/
 private-key.pem
+.DS_Store

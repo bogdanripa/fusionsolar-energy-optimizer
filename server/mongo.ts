@@ -127,6 +127,7 @@ class Mongo {
             }
             await new Promise(res => setTimeout(res, 500));
         }
+        console.log('MongoDB connection established.');
     }
 
     async getAll() {
