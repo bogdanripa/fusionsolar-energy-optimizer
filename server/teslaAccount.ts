@@ -1,7 +1,7 @@
 import axios from 'axios'
 import Mongo from './mongo.js'
 
-class TeslaAccount {
+export default class TeslaAccount {
   id:string
   static m?:Mongo
   refreshToken?:string
@@ -143,5 +143,3 @@ class TeslaAccount {
   }
 
 }
-
-export default TeslaAccount;

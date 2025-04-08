@@ -5,7 +5,7 @@ import TeslaAccount from './teslaAccount.js'
 import Tesla from './tesla.js'
 
 let config:any;
-import {fusionsolar} from './fusionsolar'
+import FusionSolar from './fusionsolar.js'
 
 import('./config.json').then((cfg) => {
     config = cfg;
@@ -22,11 +22,10 @@ interface Station {
 
 @GenezioDeploy()
 export class FusionsolarEnergyOptimizer {
+    fusionsolar: FusionSolar;
     constructor() {
         console.log("Constructor called!")
-
-        fusionsolar.setCredentials(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
-        fusionsolar.initMongo()
+        this.fusionsolar = new FusionSolar(process.env.fusionsolarCredentialsUser, process.env.fusionsolarCredentialsPassword)
     }
 
     async #optimize(VIN:string, account:TeslaAccount) {
@@ -53,7 +52,7 @@ export class FusionsolarEnergyOptimizer {
         var pos = await teslas[VIN].getPosition();
         console.log(VIN + ": is at " + pos.lat + ", " + pos.long)
         
-        var sList = await fusionsolar.getStationsList();
+        var sList = await this.fusionsolar.getStationsList();
         let closestStation: Station | undefined = undefined;
 
 
@@ -74,7 +73,7 @@ export class FusionsolarEnergyOptimizer {
         if (closestStation !== undefined) {
             // car is here
             console.log(VIN + ": closest to " + closestStation.name)
-            var fusion = await fusionsolar.getRealTimeDetails(closestStation.dn)
+            var fusion = await this.fusionsolar.getRealTimeDetails(closestStation.dn)
             console.log(closestStation.name + ": solar production is " + fusion.producing + ", using " + fusion.using);
             fusion.producing -= config.usedWatts.upperLimit;
             var cs = await teslas[VIN].getChargeState();
