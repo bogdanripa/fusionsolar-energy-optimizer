@@ -127,20 +127,20 @@ class Mongo {
         return doc;
     }
 
-    async waitForConnection(timeoutMs = 10000) {
-        const start = Date.now();
-        while (mongoose.connection.readyState !== 1) {
-            console.log(`Mongo connection is ${stateToString[mongoose.connection.readyState as keyof typeof stateToString]}, waiting...`);
-            if (Date.now() - start > timeoutMs) {
-                throw new Error('MongoDB connection timeout');
-            }
-            await new Promise(res => setTimeout(res, 500));
-        }
-        console.log('MongoDB connection established.');
-    }
+    // async waitForConnection(timeoutMs = 10000) {
+    //     const start = Date.now();
+    //     while (mongoose.connection.readyState !== 1) {
+    //         console.log(`Mongo connection is ${stateToString[mongoose.connection.readyState as keyof typeof stateToString]}, waiting...`);
+    //         if (Date.now() - start > timeoutMs) {
+    //             throw new Error('MongoDB connection timeout');
+    //         }
+    //         await new Promise(res => setTimeout(res, 500));
+    //     }
+    //     console.log('MongoDB connection established.');
+    // }
 
     async getAll() {
-        await this.waitForConnection();
+        //await this.waitForConnection();
         const docs = await this.MatModel.find({});
         return docs;
     }

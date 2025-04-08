@@ -108,8 +108,8 @@ export default class Fusionsolar {
         return response;
     }
 
-    async signIn():Promise<string> {
-        if (this.signedIn) return this.roarand;
+    async signIn() {
+        if (this.signedIn) return;
         if (!this.credentials) throw "Fusionsolar credentials not supplied"
     
         // try getting the cookies from mongo
@@ -117,7 +117,7 @@ export default class Fusionsolar {
             const mongoObj = (await this.m.getById('cookies'));
             this.cookies = mongoObj.cookies;
             this.roarand = mongoObj.roarand;
-            return this.roarand;
+            return;
         } catch(e) {
             console.log("Fusionsolar: failed reusing cookies from mongo");
         }
@@ -148,7 +148,7 @@ export default class Fusionsolar {
         console.log("Fusionsolar: saving cookies to mongo");
         await this.m.upsert('cookies', {cookies: this.cookies, roarand: this.roarand})  
         this.signedIn = true;
-        return this.roarand;
+        return;
     }
 
     async getStationsList(retried:boolean=false): Promise<any[]> {
