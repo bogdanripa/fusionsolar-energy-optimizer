@@ -146,8 +146,9 @@ export class FusionsolarEnergyOptimizer {
     @GenezioMethod({type: "cron", cronString: "*/15 * * * *"})
     async optimizeAll() {
         console.log("Optimizing all vehicles")
+        await this.fusionsolar.signIn()
         let ta = new TeslaAccount('')
-        console.log("Getting all accounts")
+        console.log("Getting all tesla accounts")
         let al = await ta.getAllAccounts()
         for (const account of al) {
             console.log("Working with account " + account.email)

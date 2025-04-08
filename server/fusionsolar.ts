@@ -108,7 +108,7 @@ export default class Fusionsolar {
         return response;
     }
 
-    private async signIn() {
+    async signIn() {
         if (this.signedIn) return;
         if (!this.credentials) throw "Fusionsolar credentials not supplied"
     
