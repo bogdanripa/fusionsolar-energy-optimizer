@@ -1,763 +1,554 @@
 syntax = "proto3";
 
-package telemetry.vehicle_data;
+// Import Timestamp if the pattern {1: int64, 2: int32} is consistently used for time.
+import "timestamp.proto";
 
-import "google/protobuf/timestamp.proto";
-
-option go_package = "github.com/teslamotors/fleet-telemetry/protos";
-
-enum Field {
-  Unknown = 0;
-  DriveRail = 1;
-  ChargeState = 2;
-  BmsFullchargecomplete = 3;
-  VehicleSpeed = 4;
-  Odometer = 5;
-  PackVoltage = 6;
-  PackCurrent = 7;
-  Soc = 8;
-  DCDCEnable = 9;
-  Gear = 10;
-  IsolationResistance = 11;
-  PedalPosition = 12;
-  BrakePedal = 13;
-  DiStateR = 14;
-  DiHeatsinkTR = 15;
-  DiAxleSpeedR = 16;
-  DiTorquemotor = 17;
-  DiStatorTempR = 18;
-  DiVBatR = 19;
-  DiMotorCurrentR = 20;
-  Location = 21;
-  GpsState = 22;
-  GpsHeading = 23;
-  NumBrickVoltageMax = 24;
-  BrickVoltageMax = 25;
-  NumBrickVoltageMin = 26;
-  BrickVoltageMin = 27;
-  NumModuleTempMax = 28;
-  ModuleTempMax = 29;
-  NumModuleTempMin = 30;
-  ModuleTempMin = 31;
-  RatedRange = 32;
-  Hvil = 33;
-  DCChargingEnergyIn = 34;
-  DCChargingPower = 35;
-  ACChargingEnergyIn = 36;
-  ACChargingPower = 37;
-  ChargeLimitSoc = 38;
-  FastChargerPresent = 39;
-  EstBatteryRange = 40;
-  IdealBatteryRange = 41;
-  BatteryLevel = 42;
-  TimeToFullCharge = 43;
-  ScheduledChargingStartTime = 44;
-  ScheduledChargingPending = 45;
-  ScheduledDepartureTime = 46;
-  PreconditioningEnabled = 47;
-  ScheduledChargingMode = 48;
-  ChargeAmps = 49;
-  ChargeEnableRequest = 50;
-  ChargerPhases = 51;
-  ChargePortColdWeatherMode = 52;
-  ChargeCurrentRequest = 53;
-  ChargeCurrentRequestMax = 54;
-  BatteryHeaterOn = 55;
-  NotEnoughPowerToHeat = 56;
-  SuperchargerSessionTripPlanner = 57;
-  DoorState = 58;
-  Locked = 59;
-  FdWindow = 60;
-  FpWindow = 61;
-  RdWindow = 62;
-  RpWindow = 63;
-  VehicleName = 64;
-  SentryMode = 65;
-  SpeedLimitMode = 66;
-  CurrentLimitMph = 67;
-  Version = 68;
-  TpmsPressureFl = 69;
-  TpmsPressureFr = 70;
-  TpmsPressureRl = 71;
-  TpmsPressureRr = 72;
-  SemitruckTpmsPressureRe1L0 = 73;  // Semi-truck only
-  SemitruckTpmsPressureRe1L1 = 74;  // Semi-truck only
-  SemitruckTpmsPressureRe1R0 = 75;  // Semi-truck only
-  SemitruckTpmsPressureRe1R1 = 76;  // Semi-truck only
-  SemitruckTpmsPressureRe2L0 = 77;  // Semi-truck only
-  SemitruckTpmsPressureRe2L1 = 78;  // Semi-truck only
-  SemitruckTpmsPressureRe2R0 = 79;  // Semi-truck only
-  SemitruckTpmsPressureRe2R1 = 80;  // Semi-truck only
-  TpmsLastSeenPressureTimeFl = 81;
-  TpmsLastSeenPressureTimeFr = 82;
-  TpmsLastSeenPressureTimeRl = 83;
-  TpmsLastSeenPressureTimeRr = 84;
-  InsideTemp = 85;
-  OutsideTemp = 86;
-  SeatHeaterLeft = 87;
-  SeatHeaterRight = 88;
-  SeatHeaterRearLeft = 89;
-  SeatHeaterRearRight = 90;
-  SeatHeaterRearCenter = 91;
-  AutoSeatClimateLeft = 92;
-  AutoSeatClimateRight = 93;
-  DriverSeatBelt = 94;
-  PassengerSeatBelt = 95;
-  DriverSeatOccupied = 96;
-  SemitruckPassengerSeatFoldPosition = 97;  // Semi-truck only
-  LateralAcceleration = 98;
-  LongitudinalAcceleration = 99;
-  Deprecated_2 = 100;
-  CruiseSetSpeed = 101;
-  LifetimeEnergyUsed = 102;
-  LifetimeEnergyUsedDrive = 103;
-  SemitruckTractorParkBrakeStatus = 104;  // Semi-truck only
-  SemitruckTrailerParkBrakeStatus = 105;  // Semi-truck only
-  BrakePedalPos = 106;
-  RouteLastUpdated = 107;
-  RouteLine = 108;
-  MilesToArrival = 109;
-  MinutesToArrival = 110;
-  OriginLocation = 111;
-  DestinationLocation = 112;
-  CarType = 113;
-  Trim = 114;
-  ExteriorColor = 115;
-  RoofColor = 116;
-  ChargePort = 117;
-  ChargePortLatch = 118;
-  Experimental_1 = 119;
-  Experimental_2 = 120;
-  Experimental_3 = 121;
-  Experimental_4 = 122;
-  GuestModeEnabled = 123;
-  PinToDriveEnabled = 124;
-  PairedPhoneKeyAndKeyFobQty = 125;
-  CruiseFollowDistance = 126;
-  AutomaticBlindSpotCamera = 127;
-  BlindSpotCollisionWarningChime = 128;
-  SpeedLimitWarning = 129;
-  ForwardCollisionWarning = 130;
-  LaneDepartureAvoidance = 131;
-  EmergencyLaneDepartureAvoidance = 132;
-  AutomaticEmergencyBrakingOff = 133;
-  LifetimeEnergyGainedRegen = 134;
-  DiStateF = 135;
-  DiStateREL = 136;
-  DiStateRER = 137;
-  DiHeatsinkTF = 138;
-  DiHeatsinkTREL = 139;
-  DiHeatsinkTRER = 140;
-  DiAxleSpeedF = 141;
-  DiAxleSpeedREL = 142;
-  DiAxleSpeedRER = 143;
-  DiSlaveTorqueCmd = 144;
-  DiTorqueActualR = 145;
-  DiTorqueActualF = 146;
-  DiTorqueActualREL = 147;
-  DiTorqueActualRER = 148;
-  DiStatorTempF = 149;
-  DiStatorTempREL = 150;
-  DiStatorTempRER = 151;
-  DiVBatF = 152;
-  DiVBatREL = 153;
-  DiVBatRER = 154;
-  DiMotorCurrentF = 155;
-  DiMotorCurrentREL = 156;
-  DiMotorCurrentRER = 157;
-  EnergyRemaining = 158;
-  ServiceMode = 159;
-  BMSState = 160;
-  GuestModeMobileAccessState = 161;
-  Deprecated_1 = 162;
-  DestinationName = 163;
-  DiInverterTR = 164;
-  DiInverterTF = 165;
-  DiInverterTREL = 166;
-  DiInverterTRER = 167;
-  Experimental_5 = 168;
-  Experimental_6 = 169;
-  Experimental_7 = 170;
-  Experimental_8 = 171;
-  Experimental_9 = 172;
-  Experimental_10 = 173;
-  Experimental_11 = 174;
-  Experimental_12 = 175;
-  Experimental_13 = 176;
-  Experimental_14 = 177;
-  Experimental_15 = 178;
-
-  // fields below here are always returned typed
-  // field 179 is first available in firmware version 2024.38
-
-  DetailedChargeState = 179;
-
-  // fields 180-183, 185-228 are first available in firmware version 2024.44.25 and 2024.45.25 (the 2024.45. versioning is ~equivalent to 2024.44.)
-  // field 184 is first available in firmware version 2024.44.32 and 2024.45.32 (the 2024.45. versioning is ~equivalent to 2024.44.)
-
-  CabinOverheatProtectionMode = 180;
-  CabinOverheatProtectionTemperatureLimit = 181;
-  CenterDisplay = 182;
-  ChargePortDoorOpen = 183;
-  ChargerVoltage = 184;
-  ChargingCableType = 185;
-  ClimateKeeperMode = 186;
-  DefrostForPreconditioning = 187;
-  DefrostMode = 188;
-  EfficiencyPackage = 189;
-  EstimatedHoursToChargeTermination = 190;
-  EuropeVehicle = 191;
-  ExpectedEnergyPercentAtTripArrival = 192;
-  FastChargerType = 193;
-  HomelinkDeviceCount = 194;
-  HomelinkNearby = 195;
-  HvacACEnabled = 196;
-  HvacAutoMode = 197;
-  HvacFanSpeed = 198;
-  HvacFanStatus = 199;
-  HvacLeftTemperatureRequest = 200;
-  HvacPower = 201;
-  HvacRightTemperatureRequest = 202;
-  HvacSteeringWheelHeatAuto = 203;
-  HvacSteeringWheelHeatLevel = 204;
-  OffroadLightbarPresent = 205;
-  PowershareHoursLeft = 206;
-  PowershareInstantaneousPowerKW = 207;
-  PowershareStatus = 208;
-  PowershareStopReason = 209;
-  PowershareType = 210;
-  RearDisplayHvacEnabled = 211;
-  RearSeatHeaters = 212;
-  RemoteStartEnabled = 213;
-  RightHandDrive = 214;
-  RouteTrafficMinutesDelay = 215;
-  SoftwareUpdateDownloadPercentComplete = 216;
-  SoftwareUpdateExpectedDurationMinutes = 217;
-  SoftwareUpdateInstallationPercentComplete = 218;
-  SoftwareUpdateScheduledStartTime = 219;
-  SoftwareUpdateVersion = 220;
-  TonneauOpenPercent = 221;
-  TonneauPosition = 222;
-  TonneauTentMode = 223;
-  TpmsHardWarnings = 224;
-  TpmsSoftWarnings = 225;
-  ValetModeEnabled = 226;
-  WheelType = 227;
-  WiperHeatEnabled = 228;
-
-  // fields 229-238 are first available in firmware version 2024.44.32 and 2024.45.32 (the 2024.45 versioning is ~equivalent to 2024.44)
-
-  LocatedAtHome = 229;
-  LocatedAtWork = 230;
-  LocatedAtFavorite = 231;
-  SettingDistanceUnit = 232;
-  SettingTemperatureUnit = 233;
-  Setting24HourTime = 234;
-  SettingTirePressureUnit = 235;
-  SettingChargeUnit = 236;
-  ClimateSeatCoolingFrontLeft = 237;
-  ClimateSeatCoolingFrontRight = 238;
-
-  // fields 239-257 are first available in firmware version 2025.2.6 (device client version 1.0.0)
-
-  LightsHazardsActive = 239;
-  LightsTurnSignal = 240;
-  LightsHighBeams = 241;
-  MediaPlaybackStatus = 242;
-  MediaPlaybackSource = 243;
-  MediaAudioVolume = 244;
-  MediaNowPlayingDuration = 245;
-  MediaNowPlayingElapsed = 246;
-  MediaNowPlayingArtist = 247;
-  MediaNowPlayingTitle = 248;
-  MediaNowPlayingAlbum = 249;
-  MediaNowPlayingStation = 250;
-  MediaAudioVolumeIncrement = 251;
-  MediaAudioVolumeMax = 252;
-  SunroofInstalled = 253;
-  SeatVentEnabled = 254;
-  RearDefrostEnabled = 255;
-  ChargeRateMilePerHour = 256;
-  Deprecated_3 = 257;
+// --- Top Level Message ---
+message TopLevelMessage {
+  Message2 message_2 = 2;
+  Message3 message_3 = 3;
+  Message4 message_4 = 4;
+  string field_5 = 5;
+  Message6 message_6 = 6;
+  Message7 message_7 = 7;
+  string field_8 = 8;
+  Message9 message_9 = 9;
+  repeated Message11 message_11 = 11; // Repeated field
+  string car_status = 12;
+  Message17 message_17 = 17;
+  Message18 message_18 = 18;
+  Message19 message_19 = 19;
+  string field_20 = 20;
+  string field_21 = 21;
+  Message22 message_22 = 22;
+  Message23 message_23 = 23;
+  Message24 message_24 = 24;
+  Message26 message_26 = 26;
+  repeated Message900 message_900 = 900; // Repeated field
+  int32 field_999 = 999;
 }
 
-// ChargingState is deprecated and not used
-enum ChargingState {
-    ChargeStateUnknown = 0;
-    ChargeStateDisconnected = 1;
-    ChargeStateNoPower = 2;
-    ChargeStateStarting = 3;
-    ChargeStateCharging = 4;
-    ChargeStateComplete = 5;
-    ChargeStateStopped = 6;
-}
+// --- Nested Message Definitions ---
 
-enum DetailedChargeStateValue {
-    DetailedChargeStateUnknown = 0;
-    DetailedChargeStateDisconnected = 1;
-    DetailedChargeStateNoPower = 2;
-    DetailedChargeStateStarting = 3;
-    DetailedChargeStateCharging = 4;
-    DetailedChargeStateComplete = 5;
-    DetailedChargeStateStopped = 6;
-}
-
-// ShiftState are the gear options
-enum ShiftState {
-    ShiftStateUnknown = 0;
-    ShiftStateInvalid = 1;
-    ShiftStateP = 2;
-    ShiftStateR = 3;
-    ShiftStateN = 4;
-    ShiftStateD = 5;
-    ShiftStateSNA = 6;
-}
-
-// LocationValue is a Datum value type
-message LocationValue {
-  double latitude = 1;
-  double longitude = 2;
-}
-
-enum FollowDistance {
-    FollowDistanceUnknown = 0;
-    FollowDistance1 = 1;
-    FollowDistance2 = 2;
-    FollowDistance3 = 3;
-    FollowDistance4 = 4;
-    FollowDistance5 = 5;
-    FollowDistance6 = 6;
-    FollowDistance7 = 7;
-}
-
-enum ForwardCollisionSensitivity {
-  ForwardCollisionSensitivityUnknown = 0;
-  ForwardCollisionSensitivityOff = 1;
-  ForwardCollisionSensitivityLate = 2;
-  ForwardCollisionSensitivityAverage = 3;
-  ForwardCollisionSensitivityEarly = 4;
-}
-
-enum GuestModeMobileAccess {
-    GuestModeMobileAccessUnknown = 0;
-    GuestModeMobileAccessInit = 1;
-    GuestModeMobileAccessNotAuthenticated = 2;
-    GuestModeMobileAccessAuthenticated = 3;
-    GuestModeMobileAccessAbortedDriving = 4;
-    GuestModeMobileAccessAbortedUsingRemoteStart = 5;
-    GuestModeMobileAccessAbortedUsingBLEKeys = 6;
-    GuestModeMobileAccessAbortedValetMode = 7;
-    GuestModeMobileAccessAbortedGuestModeOff = 8;
-    GuestModeMobileAccessAbortedDriveAuthTimeExceeded = 9;
-    GuestModeMobileAccessAbortedNoDataReceived = 10;
-    GuestModeMobileAccessRequestingFromMothership = 11;
-    GuestModeMobileAccessRequestingFromAuthD = 12;
-    GuestModeMobileAccessAbortedFetchFailed = 13;
-    GuestModeMobileAccessAbortedBadDataReceived = 14;
-    GuestModeMobileAccessShowingQRCode = 15;
-    GuestModeMobileAccessSwipedAway = 16;
-    GuestModeMobileAccessDismissedQRCodeExpired = 17;
-    GuestModeMobileAccessSucceededPairedNewBLEKey = 18;
-}
-
-enum LaneAssistLevel {
-  LaneAssistLevelUnknown = 0;
-  LaneAssistLevelNone = 1;
-  LaneAssistLevelWarning = 2;
-  LaneAssistLevelAssist = 3;
-}
-
-enum ScheduledChargingModeValue {
-  ScheduledChargingModeUnknown = 0;
-  ScheduledChargingModeOff = 1;
-  ScheduledChargingModeStartAt = 2;
-  ScheduledChargingModeDepartBy = 3;
-}
-
-enum SentryModeState {
-    SentryModeStateUnknown = 0;
-    SentryModeStateOff = 1;
-    SentryModeStateIdle = 2;
-    SentryModeStateArmed = 3;
-    SentryModeStateAware = 4;
-    SentryModeStatePanic = 5;
-    SentryModeStateQuiet = 6;
-}
-
-enum SpeedAssistLevel {
-    SpeedAssistLevelUnknown = 0;
-    SpeedAssistLevelNone = 1;
-    SpeedAssistLevelDisplay = 2;
-    SpeedAssistLevelChime = 3;
-}
-
-enum BMSStateValue {
-    BMSStateUnknown = 0;
-    BMSStateStandby = 1;
-    BMSStateDrive = 2;
-    BMSStateSupport = 3;
-    BMSStateCharge = 4;
-    BMSStateFEIM = 5;
-    BMSStateClearFault = 6;
-    BMSStateFault = 7;
-    BMSStateWeld = 8;
-    BMSStateTest = 9;
-    BMSStateSNA = 10;
-}
-
-enum BuckleStatus {
-    BuckleStatusUnknown = 0;
-    BuckleStatusUnlatched = 1;
-    BuckleStatusLatched = 2;
-    BuckleStatusFaulted = 3;
-}
-
-enum CarTypeValue {
-    CarTypeUnknown = 0;
-    CarTypeModelS = 1;
-    CarTypeModelX = 2;
-    CarTypeModel3 = 3;
-    CarTypeModelY = 4;
-    CarTypeSemiTruck = 5;
-    CarTypeCybertruck = 6;
-}
-
-enum ChargePortValue {
-    ChargePortUnknown = 0;
-    ChargePortUS = 1;
-    ChargePortEU = 2;
-    ChargePortGB = 3;
-    ChargePortCCS = 4;
-}
-
-enum ChargePortLatchValue {
-    ChargePortLatchUnknown = 0;
-    ChargePortLatchSNA = 1;
-    ChargePortLatchDisengaged = 2;
-    ChargePortLatchEngaged = 3;
-    ChargePortLatchBlocking = 4;
-}
-
-message Doors {
-  bool DriverFront = 1;
-  bool DriverRear = 2;
-  bool PassengerFront = 3;
-  bool PassengerRear = 4;
-  bool TrunkFront = 5;
-  bool TrunkRear = 6;
-}
-
-enum DriveInverterState {
-    DriveInverterStateUnknown = 0;
-    DriveInverterStateUnavailable = 1;
-    DriveInverterStateStandby = 2;
-    DriveInverterStateFault = 3;
-    DriveInverterStateAbort = 4;
-    DriveInverterStateEnable = 5;
-}
-
-enum HvilStatus {
-    HvilStatusUnknown = 0;
-    HvilStatusFault = 1;
-    HvilStatusOK = 2;
-}
-
-enum WindowState {
-    WindowStateUnknown = 0;
-    WindowStateClosed = 1;
-    WindowStatePartiallyOpen = 2;
-    WindowStateOpened = 3;
-}
-
-enum SeatFoldPosition {
-    SeatFoldPositionUnknown = 0;
-    SeatFoldPositionSNA = 1;
-    SeatFoldPositionFaulted = 2;
-    SeatFoldPositionNotConfigured = 3;
-    SeatFoldPositionFolded = 4;
-    SeatFoldPositionUnfolded = 5;
-}
-
-enum TractorAirStatus {
-    TractorAirStatusUnknown = 0;
-    TractorAirStatusNotAvailable = 1;
-    TractorAirStatusError = 2;
-    TractorAirStatusCharged = 3;
-    TractorAirStatusBuildingPressureIntermediate = 4;
-    TractorAirStatusExhaustingPressureIntermediate = 5;
-    TractorAirStatusExhausted = 6;
-}
-
-enum TrailerAirStatus {
-    TrailerAirStatusUnknown = 0;
-    TrailerAirStatusSNA = 1;
-    TrailerAirStatusInvalid = 2;
-    TrailerAirStatusBobtailMode = 3;
-    TrailerAirStatusCharged = 4;
-    TrailerAirStatusBuildingPressureIntermediate = 5;
-    TrailerAirStatusExhaustingPressureIntermediate = 6;
-    TrailerAirStatusExhausted = 7;
-}
-
-enum HvacAutoModeState {
-  HvacAutoModeStateUnknown = 0;
-  HvacAutoModeStateOn = 1;
-  HvacAutoModeStateOverride = 2;
-}
-
-enum CabinOverheatProtectionModeState {
-  CabinOverheatProtectionModeStateUnknown = 0;
-  CabinOverheatProtectionModeStateOff = 1;
-  CabinOverheatProtectionModeStateOn = 2;
-  CabinOverheatProtectionModeStateFanOnly = 3;
-}
-
-enum ClimateOverheatProtectionTempLimit {
-  ClimateOverheatProtectionTempLimitUnknown = 0;
-  ClimateOverheatProtectionTempLimitHigh = 1;
-  ClimateOverheatProtectionTempLimitMedium = 2;
-  ClimateOverheatProtectionTempLimitLow = 3;
-}
-
-enum DefrostModeState {
-  DefrostModeStateUnknown = 0;
-  DefrostModeStateOff = 1;
-  DefrostModeStateNormal = 2;
-  DefrostModeStateMax = 3;
-  DefrostModeStateAutoDefog = 4;
-}
-
-enum ClimateKeeperModeState {
-  ClimateKeeperModeStateUnknown = 0;
-  ClimateKeeperModeStateOff = 1;
-  ClimateKeeperModeStateOn = 2;
-  ClimateKeeperModeStateDog = 3;
-  ClimateKeeperModeStateParty = 4;
-}
-
-enum HvacPowerState {
-  HvacPowerStateUnknown = 0;
-  HvacPowerStateOff = 1;
-  HvacPowerStateOn = 2;
-  HvacPowerStatePrecondition = 3;
-  HvacPowerStateOverheatProtect = 4;
-}
-
-enum FastCharger {
-  FastChargerUnknown = 0;
-  FastChargerSupercharger = 1;
-  FastChargerCHAdeMO = 2;
-  FastChargerGB = 3;
-  FastChargerACSingleWireCAN = 4;
-  FastChargerCombo = 5;
-  FastChargerMCSingleWireCAN = 6;
-  FastChargerOther = 7;
-  FastChargerSNA = 8;
-}
-
-enum CableType {
-  CableTypeUnknown = 0;
-  CableTypeIEC = 1;
-  CableTypeSAE = 2;
-  CableTypeGB_AC = 3;
-  CableTypeGB_DC = 4;
-  CableTypeSNA = 5;
-}
-
-enum TonneauTentModeState {
-  TonneauTentModeStateUnknown = 0;
-  TonneauTentModeStateInactive = 1;
-  TonneauTentModeStateMoving = 2;
-  TonneauTentModeStateFailed = 3;
-  TonneauTentModeStateActive = 4;
-}
-
-enum TonneauPositionState {
-  TonneauPositionStateUnknown = 0;
-  TonneauPositionStateInvalid = 1;
-  TonneauPositionStateClosed = 2;
-  TonneauPositionStatePartiallyOpen = 3;
-  TonneauPositionStateFullyOpen = 4;
-}
-
-enum PowershareState {
-  PowershareStateUnknown = 0;
-  PowershareStateInactive = 1;
-  PowershareStateHandshaking = 2;
-  PowershareStateInit = 3;
-  PowershareStateEnabled = 4;
-  PowershareStateEnabledReconnectingSoon = 5;
-  PowershareStateStopped = 6;
-}
-enum PowershareStopReasonStatus {
-  PowershareStopReasonStatusUnknown = 0;
-  PowershareStopReasonStatusNone = 1;
-  PowershareStopReasonStatusSOCTooLow = 2;
-  PowershareStopReasonStatusRetry = 3;
-  PowershareStopReasonStatusFault = 4;
-  PowershareStopReasonStatusUser = 5;
-  PowershareStopReasonStatusReconnecting = 6;
-  PowershareStopReasonStatusAuthentication = 7;
-}
-
-enum PowershareTypeStatus {
-  PowershareTypeStatusUnknown = 0;
-  PowershareTypeStatusNone = 1;
-  PowershareTypeStatusLoad = 2;
-  PowershareTypeStatusHome = 3;
-}
-
-enum DisplayState {
-  DisplayStateUnknown = 0;
-  DisplayStateOff = 1;
-  DisplayStateDim = 2;
-  DisplayStateAccessory = 3;
-  DisplayStateOn = 4;
-  DisplayStateDriving = 5;
-  DisplayStateCharging = 6;
-  DisplayStateLock = 7;
-  DisplayStateSentry = 8;
-  DisplayStateDog = 9;
-  DisplayStateEntertainment = 10;
-}
-
-enum DistanceUnit {
-  DistanceUnitUnknown = 0;
-  DistanceUnitMiles = 1;
-  DistanceUnitKilometers = 2;
-}
-
-enum TemperatureUnit {
-  TemperatureUnitUnknown = 0;
-  TemperatureUnitFahrenheit = 1;
-  TemperatureUnitCelsius = 2;
-}
-
-enum PressureUnit {
-  PressureUnitUnknown = 0;
-  PressureUnitPsi = 1;
-  PressureUnitBar = 2;
-}
-
-enum ChargeUnitPreference {
-  ChargeUnitUnknown = 0;
-  ChargeUnitDistance = 1;
-  ChargeUnitPercent = 2;
-}
-
-enum SunroofInstalledState {
-  SunroofInstalledStateUnknown = 0;
-  SunroofInstalledStateNotInstalled = 1;
-  SunroofInstalledStateGen1Installed = 2;
-  SunroofInstalledStateGen2Installed = 3;
-}
-
-enum TurnSignalState {
-  TurnSignalStateUnknown = 0;
-  TurnSignalStateOff = 1;
-  TurnSignalStateLeft = 2;
-  TurnSignalStateRight = 3;
-  TurnSignalStateBoth = 4;
-}
-
-enum MediaStatus {
-  MediaStatusUnknown = 0;
-  MediaStatusStopped = 1;
-  MediaStatusPlaying = 2;
-  MediaStatusPaused = 3;
-}
-
-message TireLocation {
-  bool front_left = 1;
-  bool front_right = 2;
-  bool rear_left = 3;
-  bool rear_right = 4;
-
-  bool semi_middle_axle_left_2 = 5;
-  bool semi_middle_axle_right_2 = 6;
-  bool semi_rear_axle_left = 7;
-  bool semi_rear_axle_right = 8;
-  bool semi_rear_axle_left_2 = 9;
-  bool semi_rear_axle_right_2 = 10;
-}
-
-message Time {
-  int32 hour = 1;
-  int32 minute = 2;
-  int32 second = 3;
-}
-
-// Value is a dynamic Datum type.  Most Datums are strings and is the default format
-// Note: Fields may have their types updated with different software and vehicle
-// versions to optimize for precision or space
-message Value {
-  oneof value {
-    string string_value = 1;
-    int32 int_value = 2;
-    int64 long_value = 3;
-    float float_value = 4;
-    double double_value = 5;
-    bool boolean_value = 6;
-    LocationValue location_value = 7;
-    ChargingState charging_value = 8;
-    ShiftState shift_state_value = 9;
-    bool invalid = 10;
-    LaneAssistLevel lane_assist_level_value = 11;
-    ScheduledChargingModeValue scheduled_charging_mode_value = 12;
-    SentryModeState sentry_mode_state_value = 13;
-    SpeedAssistLevel speed_assist_level_value = 14;
-    BMSStateValue bms_state_value = 15;
-    BuckleStatus buckle_status_value = 16;
-    CarTypeValue car_type_value = 17;
-    ChargePortValue charge_port_value = 18;
-    ChargePortLatchValue charge_port_latch_value = 19;
-    Doors door_value = 21;
-    DriveInverterState drive_inverter_state_value = 22;
-    HvilStatus hvil_status_value = 23;
-    WindowState window_state_value = 24;
-    SeatFoldPosition seat_fold_position_value = 25;
-    TractorAirStatus tractor_air_status_value = 26;
-    FollowDistance follow_distance_value = 27;
-    ForwardCollisionSensitivity forward_collision_sensitivity_value = 28;
-    GuestModeMobileAccess guest_mode_mobile_access_value = 29;
-    TrailerAirStatus trailer_air_status_value = 30;
-    Time time_value = 31;
-    DetailedChargeStateValue detailed_charge_state_value = 32;
-    HvacAutoModeState hvac_auto_mode_value = 33;
-    CabinOverheatProtectionModeState cabin_overheat_protection_mode_value = 34;
-    ClimateOverheatProtectionTempLimit cabin_overheat_protection_temperature_limit_value = 35;
-    DefrostModeState defrost_mode_value = 36;
-    ClimateKeeperModeState climate_keeper_mode_value = 37;
-    HvacPowerState hvac_power_value = 38;
-    TireLocation tire_location_value = 39;
-    FastCharger fast_charger_value = 40;
-    CableType cable_type_value = 41;
-    TonneauTentModeState tonneau_tent_mode_value = 42;
-    TonneauPositionState tonneau_position_value = 43;
-    PowershareTypeStatus powershare_type_value = 44;
-    PowershareState powershare_state_value = 45;
-    PowershareStopReasonStatus powershare_stop_reason_value = 46;
-    DisplayState display_state_value = 47;
-    DistanceUnit distance_unit_value = 48;
-    TemperatureUnit temperature_unit_value = 49;
-    PressureUnit pressure_unit_value = 50;
-    ChargeUnitPreference charge_unit_preference_value = 51;
-    TurnSignalState turn_signal_state_value = 52;
-    MediaStatus media_status_value = 53;
-    SunroofInstalledState sunroof_installed_state_value = 54;
+// Corresponds to field 2 in TopLevelMessage
+message Message2 {
+  message Nested_1 {
+    string field_1 = 1;
   }
+  message Nested_2 {
+    string field_2 = 2;
+  }
+  message Nested_3 {
+    string field_4 = 4;
+  }
+  message Nested_5 {
+    string field_2 = 2;
+  }
+  // Common pattern for timestamp - assuming google.protobuf.Timestamp
+  google.protobuf.Timestamp timestamp_7 = 7;
+  int32 field_104 = 104;
+  int32 field_106 = 106;
+  int32 field_108 = 108;
 }
 
-// Datum represents a single field and its value
-message Datum {
-  Field key = 1;
-  Value value = 2;
+// Corresponds to field 3 in TopLevelMessage
+message Message3 {
+  message Nested_1 {
+    string field_7 = 7;
+  }
+  message Nested_2 {
+    string field_7 = 7;
+  }
+  message Nested_28 {
+    string field_2 = 2;
+  }
+  message Nested_31 {
+    int64 timestamp_seconds_1 = 1; // Assuming seconds part of a timestamp
+  }
+  message Nested_35 {
+    string field_3 = 3;
+  }
+  // Assuming google.protobuf.Timestamp
+  google.protobuf.Timestamp timestamp_44 = 44;
+  message Nested_45 {
+    string field_1 = 1;
+  }
+  string field_46 = 46;
+  message Nested_158 {
+     message Nested_1 {
+       string field_1 = 1;
+     }
+     Nested_1 message_1 = 1;
+     string field_2 = 2;
+     string field_3 = 3;
+  }
+  Nested_158 message_158 = 158;
+
+  int32 battery_target = 104;
+  int32 field_105 = 105;
+  int32 field_106 = 106;
+  int32 field_107 = 107;
+  int32 field_109 = 109;
+  int32 field_110 = 110;
+  float field_111 = 111; // 0x436e448d likely float
+  float field_112 = 112; // 0x431a8a50 likely float
+  float field_113 = 113; // 0x436e448d likely float
+  int32 field_114 = 114;
+  int32 battery_percentage = 115;
+  float field_116 = 116; // 0x41a6147b likely float
+  float field_117 = 117; // 0x42b70000 likely float
+  float field_118 = 118; // 0x42b70000 likely float
+  int32 field_119 = 119;
+  int32 field_120 = 120;
+  int32 field_121 = 121;
+  int32 field_122 = 122;
+  int32 field_125 = 125;
+  int32 field_126 = 126;
+  int32 field_127 = 127;
+  int32 field_130 = 130;
+  int32 field_132 = 132;
+  int32 field_133 = 133;
+  int32 field_134 = 134;
+  int32 field_136 = 136;
+  int32 field_137 = 137;
+  int32 field_138 = 138;
+  int32 field_148 = 148;
+  int32 field_149 = 149;
+  int32 field_152 = 152;
+  int32 field_153 = 153;
+  int32 field_154 = 154;
+  int32 field_155 = 155;
+  int32 field_156 = 156; // 0x00000000 could be int32/fixed32
+  int32 field_159 = 159;
 }
 
-// Payload holds a collection of values, and may not have a vin
-message Payload {
-  repeated Datum data = 1;
-  google.protobuf.Timestamp created_at = 2;
-  string vin = 3;
-  bool is_resend = 4;
+// Corresponds to field 4 in TopLevelMessage
+message Message4 {
+  message Nested_30 {
+    string field_1 = 1;
+  }
+  // Assuming google.protobuf.Timestamp
+  google.protobuf.Timestamp timestamp_33 = 33;
+  message Nested_35 {
+    string field_1 = 1;
+  }
+  Nested_30 message_30 = 30;
+  Nested_35 message_35 = 35;
+
+  float field_101 = 101; // 0x41400001 likely float
+  float field_102 = 102; // 0x40200000 likely float
+  float field_103 = 103; // 0x41b00000 likely float
+  float field_104 = 104; // 0x41b00000 likely float
+  int32 field_105 = 105;
+  int32 field_106 = 106;
+  int32 field_107 = 107;
+  int32 field_108 = 108;
+  int32 field_109 = 109;
+  int32 field_110 = 110;
+  float field_111 = 111; // 0x41700000 likely float
+  float field_112 = 112; // 0x41e00000 likely float
+  int32 field_113 = 113;
+  int32 field_114 = 114;
+  int32 field_115 = 115;
+  int32 field_116 = 116;
+  int32 field_122 = 122;
+  int32 field_125 = 125;
+  int32 field_126 = 126;
+  int32 field_127 = 127;
+  int32 field_128 = 128;
+  int32 field_129 = 129;
+  int32 field_136 = 136;
+  int32 field_137 = 137;
+  int32 field_138 = 138;
+  int32 field_139 = 139;
+  int32 field_140 = 140;
+  int32 field_141 = 141;
+  int32 field_142 = 142;
+  int32 field_143 = 143;
+  int32 field_144 = 144;
+  int32 field_146 = 146;
+  int32 field_147 = 147;
+  int32 field_148 = 148;
+  int32 field_150 = 150;
+  int32 field_151 = 151;
+}
+
+// Corresponds to field 6 in TopLevelMessage
+message Message6 {
+  message Nested_34 {
+    string field_1 = 1;
+  }
+  message Nested_38 {
+    message Nested_1 {
+       string field_4 = 4;
+    }
+    Nested_1 message_1 = 1;
+    int32 field_104 = 104;
+    int32 field_105 = 105;
+    int32 field_106 = 106;
+    string field_107 = 107;
+  }
+  message Nested_39 {
+    int32 field_101 = 101;
+  }
+  // Assuming google.protobuf.Timestamp
+  google.protobuf.Timestamp timestamp_43 = 43;
+  message Nested_46 {
+    string field_3 = 3;
+  }
+  message Nested_47 {
+    string field_1 = 1;
+  }
+  message Data_100 { // Renamed for potential reuse
+      int32 field_1 = 1;
+      float field_2 = 2; // 0x42f00000 likely float
+      float field_3 = 3; // 0x42480000 likely float
+      float field_4 = 4; // 0x42a20000 likely float
+      int32 field_5 = 5;
+      int32 field_6 = 6;
+      int32 field_7 = 7;
+      int32 field_8 = 8; // 1380
+      int32 field_9 = 9; // 240
+  }
+
+  Nested_34 message_34 = 34;
+  Nested_38 message_38 = 38;
+  Nested_39 message_39 = 39;
+  Nested_46 message_46 = 46;
+  Nested_47 message_47 = 47;
+  bytes field_55 = 55; // Escaped string looks like bytes
+  google.protobuf.Timestamp timestamp_58 = 58;
+  google.protobuf.Timestamp timestamp_59 = 59;
+  google.protobuf.Timestamp timestamp_60 = 60;
+  google.protobuf.Timestamp timestamp_61 = 61;
+  string field_72 = 72;
+  Data_100 data_100 = 100;
+  int32 field_101 = 101;
+  string field_108 = 108;
+  string field_118 = 118;
+  int32 field_120 = 120;
+  int32 field_121 = 121;
+  int32 field_122 = 122;
+  string field_131 = 131;
+  int32 field_135 = 135;
+  int32 field_136 = 136;
+  int32 field_141 = 141;
+  int32 field_142 = 142;
+  int32 field_144 = 144;
+  int32 field_145 = 145;
+  int32 field_148 = 148;
+  int32 field_149 = 149;
+  int32 field_150 = 150;
+  float field_151 = 151; // 0x4031999a likely float
+  float field_152 = 152; // 0x40333333 likely float
+  float field_153 = 153; // 0x40333333 likely float
+  float field_154 = 154; // 0x40333333 likely float
+  int32 field_156 = 156;
+  int32 field_157 = 157;
+  int32 field_162 = 162;
+  int32 field_163 = 163;
+  int32 field_164 = 164;
+  int32 field_165 = 165;
+  int32 field_166 = 166;
+  int32 field_167 = 167;
+  int32 field_168 = 168;
+  int32 field_169 = 169;
+  float field_170 = 170; // 0x4039999a likely float
+  float field_171 = 171; // 0x4039999a likely float
+  int32 field_75 = 75;
+  int32 field_76 = 76;
+  int32 field_77 = 77;
+  int32 field_78 = 78;
+  int32 field_79 = 79;
+  int32 field_80 = 80;
+  int32 field_81 = 81;
+  int32 field_82 = 82;
+  int32 field_87 = 87;
+  int32 field_89 = 89;
+  int32 field_94 = 94;
+  int32 field_95 = 95;
+  int32 field_97 = 97;
+  int32 field_98 = 98;
+  int32 field_99 = 99;
+}
+
+// Corresponds to field 7 in TopLevelMessage
+message Message7 {
+   // Defining many simple nested messages based on observed structure
+  message Nested_1 { string field_1 = 1; }
+  message Nested_2 { string field_30 = 30; }
+  message Nested_7 { string field_4 = 4; }
+  message Nested_8 { string field_1 = 1; }
+  message Nested_9 { string field_53 = 53; }
+  message Nested_11 { string field_1 = 1; }
+  message Nested_12 { string field_2 = 2; }
+  message Nested_13 { string field_9 = 9; }
+  message Nested_16 { string field_2 = 2; }
+  message Nested_17 { string field_1 = 1; }
+  message Nested_18 { string field_5 = 5; }
+  message Nested_19 { string field_1 = 1; }
+  message Nested_23 { string field_4 = 4; }
+  message Nested_28 { string field_7 = 7; }
+  message Nested_29 { string field_6 = 6; }
+  message Nested_30 { string field_2 = 2; }
+  message Nested_32 { string field_4 = 4; }
+  message Nested_33 { string field_17 = 17; }
+  message Nested_35 { string field_4 = 4; }
+
+  Nested_1 message_1 = 1;
+  Nested_2 message_2 = 2;
+  Nested_7 message_7 = 7;
+  Nested_8 message_8 = 8;
+  Nested_9 message_9 = 9;
+  Nested_11 message_11 = 11;
+  Nested_12 message_12 = 12;
+  Nested_13 message_13 = 13;
+  Nested_16 message_16 = 16;
+  Nested_17 message_17 = 17;
+  Nested_18 message_18 = 18;
+  Nested_19 message_19 = 19;
+  Nested_23 message_23 = 23;
+  google.protobuf.Timestamp timestamp_27 = 27;
+  Nested_28 message_28 = 28;
+  Nested_29 message_29 = 29;
+  Nested_30 message_30 = 30;
+  Nested_32 message_32 = 32;
+  Nested_33 message_33 = 33;
+  Nested_35 message_35 = 35;
+
+  int32 field_103 = 103;
+  int32 field_104 = 104;
+  int32 field_105 = 105;
+  int32 field_106 = 106;
+  int32 field_110 = 110;
+  int32 field_114 = 114;
+  int32 field_115 = 115;
+  int32 field_120 = 120;
+  int32 field_121 = 121;
+  int32 field_122 = 122;
+  int32 field_124 = 124;
+  int32 field_125 = 125;
+  int32 field_126 = 126;
+  int32 field_134 = 134;
+  int32 field_136 = 136;
+  int32 field_137 = 137;
+  int32 field_138 = 138;
+  int32 field_139 = 139;
+  int32 field_141 = 141;
+  int32 field_142 = 142;
+  int32 field_143 = 143;
+  int32 field_144 = 144; // 14400
+  int32 field_145 = 145;
+  int32 field_147 = 147;
+  int32 field_148 = 148;
+  int32 field_150 = 150;
+  int32 field_154 = 154;
+  int32 field_155 = 155;
+  int32 field_156 = 156;
+  int32 field_157 = 157;
+  int32 field_158 = 158;
+  int32 field_159 = 159;
+  string vin = 160;
+  int32 field_162 = 162;
+  int32 field_163 = 163;
+  int32 field_164 = 164;
+  int32 field_61 = 61;
+  int32 field_166 = 166;
+  int32 field_167 = 167;
+  int32 field_168 = 168;
+  int32 field_169 = 169;
+  int32 field_170 = 170;
+  int32 field_172 = 172;
+  int32 field_174 = 174;
+  int32 field_175 = 175;
+  int32 field_176 = 176;
+  int32 field_177 = 177;
+}
+
+// Corresponds to field 9 in TopLevelMessage
+message Message9 {
+  message Nested_15 {
+    string field_1 = 1;
+  }
+  message Nested_19 {
+    string field_1 = 1;
+  }
+  message Nested_22 {
+    int32 field_103 = 103;
+    int32 field_104 = 104;
+    float field_106 = 106; // 0x42f00000 likely float
+    float field_107 = 107; // 0x42480000 likely float
+    float field_108 = 108; // 0x42a20000 likely float
+  }
+
+  Nested_15 message_15 = 15;
+  Nested_19 message_19 = 19;
+  Nested_22 message_22 = 22;
+  google.protobuf.Timestamp timestamp_2000 = 2000; // High field number, but valid
+
+  int32 field_101 = 101;
+  int32 field_102 = 102;
+  int32 field_103 = 103;
+  int32 field_104 = 104;
+  int32 field_105 = 105;
+  int32 field_106 = 106;
+  int32 field_107 = 107;
+  int32 field_108 = 108;
+  int32 field_109 = 109;
+  int32 field_110 = 110;
+  int32 field_113 = 113;
+  int32 field_114 = 114;
+  int32 field_116 = 116;
+  int32 field_117 = 117;
+  int32 field_118 = 118;
+  int32 field_120 = 120;
+}
+
+// Corresponds to field 11 in TopLevelMessage (repeated)
+message Message11 {
+  int32 field_1 = 1;
+  bytes field_2 = 2; // Escaped string looks like bytes
+  bytes field_3 = 3; // Escaped string looks like bytes
+}
+
+// Corresponds to field 17 in TopLevelMessage
+message Message17 {
+   message Nested_3 {
+       float field_3 = 3; // 0x42c1999a likely float
+   }
+   Nested_3 message_3 = 3;
+   google.protobuf.Timestamp timestamp_4 = 4;
+   string field_2 = 2;
+}
+
+// Corresponds to field 18 in TopLevelMessage
+message Message18 {
+  message Nested_8 {
+    string field_1 = 1;
+  }
+  message Nested_19 {
+    string field_3 = 3;
+  }
+   message Nested_20 {
+    string field_1 = 1;
+  }
+  google.protobuf.Timestamp timestamp_1 = 1;
+  Nested_8 message_8 = 8;
+  Nested_19 message_19 = 19;
+  Nested_20 message_20 = 20;
+  bytes field_24 = 24; // Escaped string looks like bytes
+
+  int32 field_2 = 2;
+  int32 field_3 = 3;
+  int32 field_4 = 4;
+  int32 field_5 = 5;
+  string field_6 = 6;
+  int32 field_9 = 9;
+  int32 field_10 = 10;
+  int32 field_15 = 15;
+  int32 field_16 = 16;
+  int32 field_17 = 17;
+  int32 field_18 = 18;
+  int32 field_21 = 21;
+  int32 field_22 = 22;
+  int32 field_23 = 23;
+  int32 field_25 = 25;
+  int32 field_26 = 26;
+  int32 field_28 = 28;
+  int32 field_31 = 31;
+  int32 field_32 = 32;
+  int32 field_33 = 33;
+  int32 field_34 = 34;
+  int32 field_35 = 35;
+  int32 field_36 = 36;
+  int32 field_37 = 37;
+  int32 field_38 = 38;
+  int32 field_39 = 39;
+  int32 field_40 = 40;
+  int32 field_41 = 41;
+  int32 field_43 = 43;
+  int32 field_53 = 53;
+  int32 field_54 = 54;
+  int64 field_56 = 56; // Large number 1741107110 -> int64
+}
+
+// Corresponds to field 19 in TopLevelMessage
+message Message19 {
+  google.protobuf.Timestamp timestamp_1 = 1;
+  google.protobuf.Timestamp timestamp_6 = 6;
+  google.protobuf.Timestamp timestamp_7 = 7;
+  google.protobuf.Timestamp timestamp_8 = 8;
+  google.protobuf.Timestamp timestamp_9 = 9;
+
+  float field_2 = 2;  // 0x4031999a likely float
+  float field_3 = 3;  // 0x40333333 likely float
+  float field_4 = 4;  // 0x40333333 likely float
+  float field_5 = 5;  // 0x40333333 likely float
+  int32 field_10 = 10;
+  int32 field_11 = 11;
+  int32 field_12 = 12;
+  int32 field_13 = 13;
+  int32 field_14 = 14;
+  int32 field_15 = 15;
+  int32 field_16 = 16;
+  int32 field_17 = 17;
+  float field_18 = 18; // 0x4039999a likely float
+  float field_19 = 19; // 0x4039999a likely float
+}
+
+// Corresponds to field 22 in TopLevelMessage
+message Message22 {
+  google.protobuf.Timestamp timestamp_1 = 1;
+  string car_name = 2;
+  string car_software_version = 3;
+}
+
+// Corresponds to field 23 in TopLevelMessage
+// Similar structure to Message6.Nested_38
+message Message23 {
+  message Nested_1 {
+     string field_4 = 4;
+  }
+  Nested_1 message_1 = 1;
+  google.protobuf.Timestamp timestamp_108 = 108; // Unusual field number for TS
+  int32 field_104 = 104;
+  int32 field_105 = 105;
+  int32 field_106 = 106;
+  string field_107 = 107;
+}
+
+// Corresponds to field 24 in TopLevelMessage
+message Message24 {
+  google.protobuf.Timestamp timestamp_1 = 1;
+  // Reusing Data_100 definition from Message6 as structure looks identical
+  Message6.Data_100 data_4 = 4;
+  int32 field_2 = 2;
+  int32 field_3 = 3;
+}
+
+// Corresponds to field 26 in TopLevelMessage
+message Message26 {
+  message Nested_5 {
+      message TrackInfo { // Renamed for clarity
+          string track_name_1 = 1;
+          string track_duration_2 = 2;
+      }
+      repeated TrackInfo track_info_4 = 4; // Repeated field
+      bytes field_5 = 5; // Escaped string looks like bytes
+      float field_1 = 1; // 0x3f800000 likely float (value 1.0)
+      float field_2 = 2; // 0x41255555 likely float
+      float field_3 = 3; // 0x3eaaaaab likely float
+  }
+  google.protobuf.Timestamp timestamp_1 = 1;
+  Nested_5 message_5 = 5;
+  int32 field_2 = 2;
+  string field_3 = 3;
+  int32 field_4 = 4;
+}
+
+// Corresponds to field 900 in TopLevelMessage (repeated)
+message Message900 {
+  bytes field_2 = 2; // Escaped string looks like bytes
+  google.protobuf.Timestamp timestamp_3 = 3;
+  google.protobuf.Timestamp timestamp_4 = 4;
 }

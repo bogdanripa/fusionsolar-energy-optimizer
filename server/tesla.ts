@@ -1,6 +1,4 @@
 import axios from 'axios'
-import https from 'https';
-import fs from 'fs';
 import Mongo from './mongo.js'
 import TeslaAccount from './teslaAccount.js'
 
@@ -187,9 +185,24 @@ class Tesla {
   async cacheVehicleData(force:boolean=false) {
     if (force) this.vehicleData = undefined;
     if (!this.vehicleData) {
-      this.vehicleData = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+      const requestedVD = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+      this.vehicleData = {
+          state: requestedVD.state,
+          pos: {
+            lat: requestedVD.drive_state.latitude,
+            long: requestedVD.drive_state.longitude
+          },
+          charge_state: {
+            charge_port_door_open: requestedVD.charge_state.charge_port_door_open,
+            battery_level: requestedVD.charge_state.battery_level,
+            charging_state: requestedVD.charge_state.charging_state,
+            charge_limit_soc: requestedVD.charge_state.charge_limit_soc,
+            charge_amps: requestedVD.charge_state.charge_amps,
+            charge_current_request_max: requestedVD.charge_state.charge_current_request_max
+          }
+        }
       if (Tesla.m && this.VIN)
-        await Tesla.m.upsert(this.VIN, {pos: {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude}, charge_port_door_open: this.vehicleData.charge_state.charge_port_door_open, charging_state: this.vehicleData.charge_state.charging_state});
+        await Tesla.m.upsert(this.VIN, this.vehicleData);
     }
   }
 
@@ -216,8 +229,8 @@ class Tesla {
     if (this.apiType) return;
     if (Tesla.m && this.VIN) {
       const mats:any = await Tesla.m.getById(this.VIN)
-      if(mats && 'apiType' in mats) {
-        this.apiType = mats.apiType;
+      if(mats && 'api_type' in mats) {
+        this.apiType = mats.api_ype;
       } else {
         this.apiType = "legacy";
       }
@@ -228,7 +241,7 @@ class Tesla {
 
   async setApiType(apiType:string) {
     if (Tesla.m && this.VIN) {
-      await Tesla.m.upsert(this.VIN, {apiType: apiType});
+      await Tesla.m.upsert(this.VIN, {api_type: apiType});
       this.apiType = apiType;
     } else {
       throw new Error("Cannot set API type")

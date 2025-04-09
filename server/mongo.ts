@@ -9,10 +9,21 @@ const stateToString = {
 
 type TeslaType = { 
     _id: string;
-    pos?: object;
-    charge_port_door_open?: boolean;
-    charging_state?: string;
-    apiType?: string;
+    pos: {
+        lat: number;
+        long: number;
+    };
+    state: string;
+    api_type?: string;
+    last_update: Date;
+    charge_state: {
+        charge_port_door_open: boolean;
+        battery_level: number;
+        charging_state: string;
+        charge_limit_soc: number;
+        charge_amps: number;
+        charge_current_request_max: number;
+    }
 };
 
 type TeslaAccount = { 
@@ -20,27 +31,40 @@ type TeslaAccount = {
     refreshToken: string;
     accessToken?: string;
     email: string;
+    last_update: Date;
 };
 
 type FusionSolarType = { 
     _id: string;
     cookies: object;
     roarand: string;
+    last_update: Date;
 };
 
 type AuditType = { 
     _id: string;
     VIN: string;
-    timestamp?: Date;
     action?: string;
+    last_update: Date;
 };
 
 const TeslaSchema = new mongoose.Schema<TeslaType>({
     _id: { type: String, required: false },
-    pos: { type: Object, required: false },
-    charge_port_door_open: { type: Boolean, required: false },
-    charging_state: { type: String, required: false },
-    apiType: { type: String, required: false, default: 'legacy' },
+    api_type: { type: String, required: false, default: 'legacy' },
+    last_update: { type: Date, default: Date.now },
+    state: { type: String, required: true, default: 'unknown' },
+    pos: {
+        lat: { type: Number, required: true },
+        long: { type: Number, required: true },
+    },
+    charge_state: {
+        charge_port_door_open: { type: Boolean, required: true },
+        battery_level: { type: Number, required: true },
+        charging_state: { type: String, required: true },
+        charge_limit_soc: { type: Number, required: true },
+        charge_amps: { type: Number, required: true },
+        charge_current_request_max: { type: Number, required: true },
+    }
 });
 
 const TeslaAccountSchema = new mongoose.Schema<TeslaAccount>({
@@ -48,23 +72,24 @@ const TeslaAccountSchema = new mongoose.Schema<TeslaAccount>({
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: false },
     email: { type: String, required: true },
+    last_update: { type: Date, default: Date.now },
 });
 
 const FusionSolarSchema = new mongoose.Schema<FusionSolarType>({
     _id: { type: String, required: false },
     cookies: { type: Object, required: true },
     roarand: { type: String, required: true },
+    last_update: { type: Date, default: Date.now },
 });
 
 const AuditSchema = new mongoose.Schema<AuditType>({
     _id: { type: String, required: false },
     VIN: { type: String, required: true },
-    timestamp: { type: Date, default: Date.now },
     action: { type: String, required: false },
+    last_update: { type: Date, default: Date.now },
 });
 
 class Mongo {
-
     private static connected: boolean = false;
     private MatModel?: any;
 
@@ -102,6 +127,7 @@ class Mongo {
         if (args[key] === null || args[key] === undefined)
             delete args[key];
         }
+        args.last_update = new Date(); // Update the last_update field
   
         // Use findByIdAndUpdate with upsert option to insert or update the document
         const updatedDocument = await this.MatModel.findByIdAndUpdate(
