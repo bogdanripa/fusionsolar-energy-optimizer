@@ -49,7 +49,7 @@ type CachedVehicleData = {
 }
 
 const TeslaSchema = new mongoose.Schema<TeslaType>({
-    _id: { type: String, required: false },
+    _id: { type: String, required: true },
     api_type: { type: String, required: false, default: 'legacy' },
     last_update: { type: Date, default: Date.now },
     state: { type: String, required: true, default: 'unknown' },
@@ -68,7 +68,7 @@ const TeslaSchema = new mongoose.Schema<TeslaType>({
 });
 
 const TeslaAccountSchema = new mongoose.Schema<TeslaAccount>({
-    _id: { type: String, required: false },
+    _id: { type: String, required: true },
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: false },
     email: { type: String, required: true },
@@ -76,21 +76,21 @@ const TeslaAccountSchema = new mongoose.Schema<TeslaAccount>({
 });
 
 const FusionSolarSchema = new mongoose.Schema<FusionSolarType>({
-    _id: { type: String, required: false },
+    _id: { type: String, required: true },
     cookies: { type: Object, required: true },
     roarand: { type: String, required: true },
     last_update: { type: Date, default: Date.now },
 });
 
 const AuditSchema = new mongoose.Schema<AuditType>({
-    _id: { type: String, required: false },
+    _id: { type: String, required: true },
     VIN: { type: String, required: true },
     action: { type: String, required: false },
     last_update: { type: Date, default: Date.now },
 });
 
 const CachedVehicleDataSchema = new mongoose.Schema<CachedVehicleData>({
-    _id: { type: String, required: false },
+    _id: { type: String, required: true },
     VIN: { type: String, required: true },
     vehicleData: { type: Object, required: true },
     last_update: { type: Date, default: Date.now },
@@ -140,9 +140,7 @@ class Mongo {
         args.last_update = new Date(); // Update the last_update field
   
         if (!id) {
-            // No ID provided – create a new document with auto-generated _id
-            const newDocument = new this.MatModel(args);
-            return await newDocument.save();
+            id = new mongoose.Types.ObjectId().toString(); // Generate a new ID if not provided
         }
         
         // Use findByIdAndUpdate with upsert option to insert or update the document

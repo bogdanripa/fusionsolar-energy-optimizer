@@ -149,8 +149,8 @@ export class FusionsolarEnergyOptimizer {
     async optimizeAll() {
         console.log("Optimizing all vehicles")
         const teslaCache = new TeslaCache('protos/vehicle_data.proto', 'TopLevelMessage');
-        const cachedVehicleData = new Mongo('tesla')
         await this.fusionsolar.signIn();
+        const cachedVehicleData = new Mongo('cached_vehicle_data')
         let ta = new TeslaAccount('')
         console.log("Getting all tesla accounts")
         let al = await ta.getAllAccounts()
