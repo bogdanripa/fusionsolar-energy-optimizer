@@ -188,9 +188,9 @@ class Tesla {
       const requestedVD = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
       this.vehicleData = {
           state: requestedVD.state,
-          pos: {
-            lat: requestedVD.drive_state.latitude,
-            long: requestedVD.drive_state.longitude
+          drive_state: {
+            latitude: requestedVD.drive_state.latitude,
+            logitude: requestedVD.drive_state.longitude
           },
           charge_state: {
             charge_port_door_open: requestedVD.charge_state.charge_port_door_open,
@@ -214,11 +214,11 @@ class Tesla {
   }
   
   async getPosition() {
-    if (this.vehicleData) return {lat: this.vehicleData.drive_state.latitude, long: this.vehicleData.drive_state.longitude};
+    if (this.vehicleData) return this.vehicleData.drive_state;
     if (Tesla.m && this.VIN) {
       const mats:any = await Tesla.m.getById(this.VIN)
-      if(mats && mats.pos) {
-        return mats.pos;
+      if(mats && mats.drive_state) {
+        return mats.drive_state;
       }
     }
   

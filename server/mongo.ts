@@ -2,9 +2,9 @@ import mongoose, { Model, Document } from 'mongoose';
 
 type TeslaType = { 
     _id: string;
-    pos: {
-        lat: number;
-        long: number;
+    drive_state: {
+        latitude: number;
+        logitude: number;
     };
     state: string;
     api_type?: string;
@@ -53,9 +53,9 @@ const TeslaSchema = new mongoose.Schema<TeslaType>({
     api_type: { type: String, required: false, default: 'legacy' },
     last_update: { type: Date, default: Date.now },
     state: { type: String, required: true, default: 'unknown' },
-    pos: {
-        lat: { type: Number, required: true },
-        long: { type: Number, required: true },
+    drive_state: {
+        latitude: { type: Number, required: true },
+        logitude: { type: Number, required: true },
     },
     charge_state: {
         charge_port_door_open: { type: Boolean, required: true },
