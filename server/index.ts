@@ -162,7 +162,7 @@ export class FusionsolarEnergyOptimizer {
                 const vin = vehicle['vin']
                 console.log("Working with vehicle " + vin);
                 try {
-                    await this.#optimize(vin, ta)
+                    //await this.#optimize(vin, ta)
                     const vehicleData = vehicle['cached_data'];
                     const vehicleDataBuffer = Buffer.from(vehicleData, 'base64');
                     const jsonData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
