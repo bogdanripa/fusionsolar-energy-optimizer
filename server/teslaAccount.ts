@@ -125,8 +125,7 @@ export default class TeslaAccount {
   async getVehicleList() {
     const vehicles = await this.request("GET", "/products/");
     // Transform the array to only contain the VINs
-    const vins = vehicles.map((vehicle:any) => vehicle.vin);
-    return vins;
+    return vehicles;
   }
 
   async getAllAccounts() {

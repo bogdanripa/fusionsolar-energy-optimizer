@@ -1,12 +1,5 @@
 import mongoose, { Model, Document } from 'mongoose';
 
-const stateToString = {
-    0: 'Disconnected',
-    1: 'Connected',
-    2: 'Connecting',
-    3: 'Disconnecting',
-};  
-
 type TeslaType = { 
     _id: string;
     pos: {
@@ -47,6 +40,13 @@ type AuditType = {
     action?: string;
     last_update: Date;
 };
+
+type CachedVehicleData = {
+    _id: string;
+    VIN: string;
+    vehicleData: object;
+    last_update: Date;
+}
 
 const TeslaSchema = new mongoose.Schema<TeslaType>({
     _id: { type: String, required: false },
@@ -89,6 +89,13 @@ const AuditSchema = new mongoose.Schema<AuditType>({
     last_update: { type: Date, default: Date.now },
 });
 
+const CachedVehicleDataSchema = new mongoose.Schema<CachedVehicleData>({
+    _id: { type: String, required: false },
+    VIN: { type: String, required: true },
+    vehicleData: { type: Object, required: true },
+    last_update: { type: Date, default: Date.now },
+});
+
 class Mongo {
     private static connected: boolean = false;
     private MatModel?: any;
@@ -116,12 +123,15 @@ class Mongo {
             case 'audit':
                 this.MatModel = mongoose.model<AuditType>('audit', AuditSchema);
                 break;
+            case 'cached_vehicle_data':
+                this.MatModel = mongoose.model<CachedVehicleData>('cached_vehicle_data', CachedVehicleDataSchema);
+                break;
             default:
                 throw new Error(`Unknown model name: ${name}`);
         }
     }
 
-    async upsert(id: string, args: any) {    
+    async upsert(id: string | undefined, args: any) {    
         // Remove null values from args
         for (var key in args) {
         if (args[key] === null || args[key] === undefined)
@@ -129,8 +139,14 @@ class Mongo {
         }
         args.last_update = new Date(); // Update the last_update field
   
+        if (!id) {
+            // No ID provided – create a new document with auto-generated _id
+            const newDocument = new this.MatModel(args);
+            return await newDocument.save();
+        }
+        
         // Use findByIdAndUpdate with upsert option to insert or update the document
-        const updatedDocument = await this.MatModel.findByIdAndUpdate(
+        return await this.MatModel.findByIdAndUpdate(
             id,
             { $set: args }, // Only update fields present in args
             {
@@ -139,8 +155,6 @@ class Mongo {
                 runValidators: true, // Ensure the update adheres to the schema
             }
         );
-
-        return updatedDocument; // Optionally return the updated document
     }
   
     async getById(id: string) {
@@ -153,6 +167,12 @@ class Mongo {
         return doc;
     }
 
+    // stateToString = {
+    //     0: 'Disconnected',
+    //     1: 'Connected',
+    //     2: 'Connecting',
+    //     3: 'Disconnecting',
+    // };  
     // async waitForConnection(timeoutMs = 10000) {
     //     const start = Date.now();
     //     while (mongoose.connection.readyState !== 1) {

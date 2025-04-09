@@ -10,7 +10,8 @@ for (const account of al) {
     console.log("Working with account " + account.email)
     ta = new TeslaAccount(account['_id'])
     const vl = await ta.getVehicleList();
-    for (const VIN of vl) {
+    for (const vehicle of vl) {
+        const VIN = vehicle['vin'];
         console.log("Working with vehicle " + VIN)
         let t = new Tesla(VIN, ta)
         try {

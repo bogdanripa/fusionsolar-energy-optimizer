@@ -3,6 +3,8 @@ import { GenezioHttpResponse, GenezioHttpRequest } from "@genezio/types";
 
 import TeslaAccount from './teslaAccount.js'
 import Tesla from './tesla.js'
+import Mongo from './mongo.js'
+import TeslaCache from './testlaCache.js';
 
 let config:any;
 import FusionSolar from './fusionsolar.js'
@@ -146,6 +148,8 @@ export class FusionsolarEnergyOptimizer {
     @GenezioMethod({type: "cron", cronString: "*/15 * * * *"})
     async optimizeAll() {
         console.log("Optimizing all vehicles")
+        const teslaCache = new TeslaCache('protos/vehicle_data.proto', 'TopLevelMessage');
+        const cachedVehicleData = new Mongo('tesla')
         await this.fusionsolar.signIn();
         let ta = new TeslaAccount('')
         console.log("Getting all tesla accounts")
@@ -154,9 +158,15 @@ export class FusionsolarEnergyOptimizer {
             console.log("Working with account " + account.email)
             ta = new TeslaAccount(account['_id'])
             const vl = await ta.getVehicleList();
-            for (const vin of vl) {
+            for (const vehicle of vl) {
+                const vin = vehicle['vin']
+                console.log("Working with vehicle " + vin);
                 try {
-                    await this.#optimize(vin, ta)
+                    //await this.#optimize(vin, ta)
+                    const vehicleData = vehicle['cached_data'];
+                    const vehicleDataBuffer = Buffer.from(vehicleData, 'base64');
+                    const jsonData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
+                    cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData: jsonData })            
                 } catch(e:any) {
                     console.log(vin + ": " + e.message)
                     console.log(e);
