@@ -160,13 +160,24 @@ export class FusionsolarEnergyOptimizer {
             const vl = await ta.getVehicleList();
             for (const vehicle of vl) {
                 const vin = vehicle['vin']
-                console.log("Working with vehicle " + vin);
+                console.log(vin + ": optimizing");
                 try {
                     //await this.#optimize(vin, ta)
-                    const vehicleData = vehicle['cached_data'];
-                    const vehicleDataBuffer = Buffer.from(vehicleData, 'base64');
-                    const jsonData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
-                    cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData: jsonData })            
+                    const base64VehicleData = vehicle['cached_data'];
+                    const found = await cachedVehicleData.findOne({ VIN: vin });
+                    if (found) {
+                        console.log(vin + ": no new cached data, skipping")
+                        continue;
+                    }
+                    const vehicleDataBuffer = Buffer.from(base64VehicleData, 'base64');
+                    var vehicleData = undefined;
+                    try {
+                        vehicleData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
+                    } catch(e:any) {
+                        console.log(vin + ": " + e.message)
+                    }                    
+                    cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData, base64VehicleData})
+                    console.log(vin + ": done")
                 } catch(e:any) {
                     console.log(vin + ": " + e.message)
                     console.log(e);

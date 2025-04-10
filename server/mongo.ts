@@ -44,7 +44,8 @@ type AuditType = {
 type CachedVehicleData = {
     _id: string;
     VIN: string;
-    vehicleData: object;
+    base64VehicleData?: string;
+    vehicleData?: object;
     last_update: Date;
 }
 
@@ -92,8 +93,9 @@ const AuditSchema = new mongoose.Schema<AuditType>({
 const CachedVehicleDataSchema = new mongoose.Schema<CachedVehicleData>({
     _id: { type: String, required: true },
     VIN: { type: String, required: true },
-    vehicleData: { type: Object, required: true },
+    vehicleData: { type: Object, required: false },
     last_update: { type: Date, default: Date.now },
+    base64VehicleData: { type: String, required: false },
 });
 
 class Mongo {
@@ -163,6 +165,10 @@ class Mongo {
             return null;
         }
         return doc;
+    }
+
+    async findOne(args: any) {
+        return await this.MatModel.findOne(args);
     }
 
     // stateToString = {
