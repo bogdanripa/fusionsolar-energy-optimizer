@@ -177,9 +177,11 @@ class Tesla {
     await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
   }
 
-  async startCharging() {
+  async startCharging(amps: number) {
     if (!this.vehicleData) await this.loadVehicleData();
+    await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
     await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
+    this.vehicleData.charge_state.charge_amps = amps;
     this.vehicleData.charge_state.charging_state = "Charging";
     await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
   }

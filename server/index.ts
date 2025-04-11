@@ -36,14 +36,10 @@ export class FusionsolarEnergyOptimizer {
             teslas[VIN] = new Tesla(VIN, account)
         }
 
-        try {
-            await teslas[VIN].cacheVehicleData();
-        } catch(e:any) {
-            console.log(VIN + ': ' + e.message)
-            if  ((new Date()).getMinutes() < 5 && (new Date()).getHours()%2 == 0) {
-                // every 2 hours, wake them up
-                await teslas[VIN].wakeUp();
-            }
+        // wake up every 2 hours
+        var date = new Date();
+        if (date.getHours() % 2 == 0 && date.getMinutes() < 5) {
+            await teslas[VIN].wakeUp();
         }
 
         var chargePortOpen = await teslas[VIN].isChargePortOpen()
@@ -78,22 +74,7 @@ export class FusionsolarEnergyOptimizer {
             console.log(closestStation.name + ": solar production is " + fusion.producing + ", using " + fusion.using);
             fusion.producing -= config.usedWatts.upperLimit;
             var cs = await teslas[VIN].getChargeState();
-            if  ((new Date()).getMinutes() > 5) {
-                if (cs != 'Charging' && fusion.producing < fusion.using + config.usedWatts.startAmp) {
-                    console.log(VIN + ": solar production is less than using, and the car is not charging. Nothing to do.")
-                    return;
-                }
-            }
-
-            console.log(VIN + ": waking up and get details")
-            try {
-                await teslas[VIN].wakeUp();
-            } catch(e:any) {
-                console.log(VIN + ": " + e.message)
-                return;
-            }
-            cs = await teslas[VIN].getChargeState()
-            var cl = await teslas[VIN].getChargeLimit()
+            var cl = await teslas[VIN].getChargeLimit();
             var amps
             var diff = cs == 'Charging'?config.usedWatts.incrementalAmp:config.usedWatts.startAmp;
             console.log(VIN + ": car is " + cs + ", target: " + cl + "%");
@@ -104,12 +85,16 @@ export class FusionsolarEnergyOptimizer {
                     // can use more
                     if (cs == 'Charging') {
                         amps = await teslas[VIN].getChargeAmps()
-                        await teslas[VIN].setChargeAmps(amps+1)
-                        console.log(VIN + ": increasing charging to " + (amps+1) + " amps")
+                        if (amps < config.teslaAmps.max) {
+                            await teslas[VIN].setChargeAmps(amps+1)
+                            console.log(VIN + ": increasing charging to " + (amps+1) + " amps")
+                        } else {
+                            console.log(VIN + ": already at max charging")
+                            return
+                        }
                         return
                     } else {
-                        await teslas[VIN].setChargeAmps(config.teslaAmps.min)
-                        await teslas[VIN].startCharging()
+                        await teslas[VIN].startCharging(config.teslaAmps.min)
                         console.log(VIN + ": starting charging at "+config.teslaAmps.min+" amps")
                         return
                     }
