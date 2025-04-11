@@ -158,7 +158,9 @@ class Mongo {
     }
   
     async getById(id: string) {
+        console.log(`MongoDB: this.MatModel.findById(${id})`);
         const doc = await this.MatModel.findById(id);
+        console.log(`MongoDB: this.MatModel.findById(${id}) returned`);
         if (!doc) {
             // Handle the case where the document does not exist
             console.log(`No document found with ID ${id}`);
