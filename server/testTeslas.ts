@@ -15,7 +15,8 @@ for (const account of al) {
         console.log("Working with vehicle " + VIN)
         let t = new Tesla(VIN, ta)
         try {
-            await t.cacheVehicleData(true);
+            await t.wakeUp();
+            await t.cacheVehicleData();
             console.log(VIN + ": Car is " + t.vehicleData.state)
         } catch(e:any) {
             console.log(VIN + ': ' + e.message)

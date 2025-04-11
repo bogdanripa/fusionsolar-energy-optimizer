@@ -132,45 +132,61 @@ class Tesla {
     return this.vehicleData.charge_state.charge_amps;
   }
   
-  /*
-  "Complete": the charging session is complete and the battery is fully charged.
-  "Charging": the vehicle is currently charging.
-  "Disconnected": the charger is not connected to the vehicle.
-  "Stopped": charging has stopped due to an error or the user manually stopping the charge.
-  "NoPower": the charger is connected but there is no power available.
-  "Unknown": the charging state is unknown.
-  */
-  async getChargeState() {
-    if (this.vehicleData && this.vehicleData.charge_state.charging_state) return this.vehicleData.charge_state.charging_state
-    // retrieve last known position
-    if (Tesla.m && this.VIN) {
-      const mats = await Tesla.m.getById(this.VIN)
-      if(mats && 'charging_state' in mats) {
-        return mats.charging_state;
+  async loadVehicleData() {
+    if (this.vehicleData) return;
+    const mats = await Tesla.m?.getById(this.VIN)
+    if (!mats) {
+      throw new Error("Cannot retrieve vehicle data")
+    }
+    this.vehicleData = {
+      state: mats.state,
+      drive_state: {
+        latitude: mats?.drive_state?.latitude,
+        logitude: mats?.drive_state?.logitude
+      },
+      charge_state: {
+        charging_state: mats?.charging_state,
+        charge_port_door_open: mats?.charge_port_door_open,
+        battery_level: mats?.battery_level,
+        charge_limit_soc: mats?.charge_limit_soc,
+        charge_amps: mats?.charge_amps,
+        charge_current_request_max: mats?.charge_current_request_max
       }
     }
-    throw new Error("Cannot retrieve charging state status")
+  }
+
+  async getChargeState() {
+    if (this.vehicleData) return this.vehicleData.charge_state.charging_state
+    await this.loadVehicleData();
+    return this.vehicleData.charge_state.charging_state;
   }
 
   async setChargeAmps(amps: number) {
+    if (!this.vehicleData) await this.loadVehicleData();
     await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
-    await this.cacheVehicleData(true);
+
+    this.vehicleData.charge_state.charge_amps = amps;
+    this.vehicleData.charge_state.charging_state = "Charging";
+    await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
   }
   
   async stopCharging() {
+    if (!this.vehicleData) await this.loadVehicleData();
     await this.#request("POST", "/vehicles/{VIN}/command/charge_stop");
-    await this.cacheVehicleData(true);
+    this.vehicleData.charge_state.charging_state = "Stopped";
+    await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
   }
 
   async startCharging() {
+    if (!this.vehicleData) await this.loadVehicleData();
     await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
-    await this.cacheVehicleData(true);
+    this.vehicleData.charge_state.charging_state = "Charging";
+    await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
   }
 
   async setLock(lock: boolean) {
     await this.#request("POST", "/vehicles/{VIN}/command/door_"+(lock?"":"un")+"lock");
     console.log(`${this.VIN} is ${lock ? "locked" : "unlocked"}`);
-    await this.cacheVehicleData(true);
   }
 
   async flashLights() {
@@ -179,31 +195,28 @@ class Tesla {
   }
   
   async getChargeLimit() {
+    if (!this.vehicleData) await this.loadVehicleData();
     return this.vehicleData.charge_state.charge_limit_soc;
   }
 
-  async cacheVehicleData(force:boolean=false) {
-    if (force) this.vehicleData = undefined;
-    if (!this.vehicleData) {
-      const requestedVD = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
-      this.vehicleData = {
-          state: requestedVD.state,
-          drive_state: {
-            latitude: requestedVD.drive_state.latitude,
-            logitude: requestedVD.drive_state.longitude
-          },
-          charge_state: {
-            charge_port_door_open: requestedVD.charge_state.charge_port_door_open,
-            battery_level: requestedVD.charge_state.battery_level,
-            charging_state: requestedVD.charge_state.charging_state,
-            charge_limit_soc: requestedVD.charge_state.charge_limit_soc,
-            charge_amps: requestedVD.charge_state.charge_amps,
-            charge_current_request_max: requestedVD.charge_state.charge_current_request_max
-          }
+  async cacheVehicleData() {
+    const requestedVD = await this.#request("GET", "/vehicles/{VIN}/vehicle_data?endpoints=charge_state%3Blocation_data");
+    this.vehicleData = {
+        state: requestedVD.state,
+        drive_state: {
+          latitude: requestedVD.drive_state.latitude,
+          logitude: requestedVD.drive_state.longitude
+        },
+        charge_state: {
+          charge_port_door_open: requestedVD.charge_state.charge_port_door_open,
+          battery_level: requestedVD.charge_state.battery_level,
+          charging_state: requestedVD.charge_state.charging_state,
+          charge_limit_soc: requestedVD.charge_state.charge_limit_soc,
+          charge_amps: requestedVD.charge_state.charge_amps,
+          charge_current_request_max: requestedVD.charge_state.charge_current_request_max
         }
-      if (Tesla.m && this.VIN)
-        await Tesla.m.upsert(this.VIN, this.vehicleData);
     }
+    await Tesla.m?.upsert(this.VIN, this.vehicleData);
   }
 
   async getVehicleList() {
@@ -213,16 +226,9 @@ class Tesla {
     return vins;
   }
   
-  async getPosition() {
-    if (this.vehicleData) return this.vehicleData.drive_state;
-    if (Tesla.m && this.VIN) {
-      const mats:any = await Tesla.m.getById(this.VIN)
-      if(mats && mats.drive_state) {
-        return mats.drive_state;
-      }
-    }
-  
-    throw new Error("Cannot retrieve last position")
+  async getCachedPosition() {
+    if (!this.vehicleData) await this.loadVehicleData();
+    return this.vehicleData.drive_state;
   }
 
   async syncApiType() {
@@ -240,24 +246,13 @@ class Tesla {
   }
 
   async setApiType(apiType:string) {
-    if (Tesla.m && this.VIN) {
-      await Tesla.m.upsert(this.VIN, {api_type: apiType});
-      this.apiType = apiType;
-    } else {
-      throw new Error("Cannot set API type")
-    }
+    await Tesla.m?.upsert(this.VIN, {api_type: apiType});
+    this.apiType = apiType;
   }
   
   async isChargePortOpen() {
-    if (this.vehicleData && this.vehicleData.charge_state.charge_port_door_open !== null) return this.vehicleData.charge_state.charge_port_door_open
-    // retrieve last known position
-    if (Tesla.m && this.VIN) {
-      const mats = await Tesla.m.getById(this.VIN)
-      if(mats && 'charge_port_door_open' in mats) {
-        return mats.charge_port_door_open;
-      }
-    }
-    throw new Error("Cannot retrieve charging port status")
+    if (!this.vehicleData) await this.loadVehicleData();
+    return this.vehicleData.charge_state.charge_port_door_open
   }
 }
 

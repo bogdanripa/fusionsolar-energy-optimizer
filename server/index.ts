@@ -37,7 +37,7 @@ export class FusionsolarEnergyOptimizer {
         }
 
         try {
-            await teslas[VIN].cacheVehicleData(true);
+            await teslas[VIN].cacheVehicleData();
         } catch(e:any) {
             console.log(VIN + ': ' + e.message)
             if  ((new Date()).getMinutes() < 5 && (new Date()).getHours()%2 == 0) {
@@ -51,12 +51,11 @@ export class FusionsolarEnergyOptimizer {
             console.log(VIN + ": charge port is closed")
             return
         }
-        var pos = await teslas[VIN].getPosition();
+        var pos = await teslas[VIN].getCachedPosition();
         console.log(VIN + ": is at " + pos.latitude + ", " + pos.logitude)
         
         var sList = await this.fusionsolar.getStationsList();
         let closestStation: Station | undefined = undefined;
-
 
         for (const station of sList) {
             station.sqDistance = Math.abs(station.latitude - pos.latitude) * Math.abs(station.longitude - pos.logitude);
@@ -162,7 +161,6 @@ export class FusionsolarEnergyOptimizer {
                 const vin = vehicle['vin']
                 console.log(vin + ": optimizing");
                 try {
-                    //await this.#optimize(vin, ta)
                     const base64VehicleData = vehicle['cached_data'];
                     const found = await cachedVehicleData.findOne({ VIN: vin });
                     if (found) {
@@ -175,8 +173,10 @@ export class FusionsolarEnergyOptimizer {
                         vehicleData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
                     } catch(e:any) {
                         console.log(vin + ": " + e.message)
-                    }                    
-                    cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData, base64VehicleData})
+                    }
+                    if (base64VehicleData)
+                        await cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData, base64VehicleData})
+                    await this.#optimize(vin, ta)
                     console.log(vin + ": done")
                 } catch(e:any) {
                     console.log(vin + ": " + e.message)
