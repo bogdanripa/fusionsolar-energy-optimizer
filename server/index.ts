@@ -165,22 +165,21 @@ export class FusionsolarEnergyOptimizer {
                     const found = await cachedVehicleData.findOne({ VIN: vin });
                     if (found) {
                         console.log(vin + ": no new cached data, skipping")
-                        continue;
+                    } else {
+                        const vehicleDataBuffer = Buffer.from(base64VehicleData, 'base64');
+                        var vehicleData = undefined;
+                        try {
+                            vehicleData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
+                        } catch(e:any) {
+                            console.log(vin + ": " + e.message)
+                        }
+                        if (base64VehicleData)
+                            await cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData, base64VehicleData})
                     }
-                    const vehicleDataBuffer = Buffer.from(base64VehicleData, 'base64');
-                    var vehicleData = undefined;
-                    try {
-                        vehicleData = await teslaCache.decodeVehicleData(vehicleDataBuffer);
-                    } catch(e:any) {
-                        console.log(vin + ": " + e.message)
-                    }
-                    if (base64VehicleData)
-                        await cachedVehicleData.upsert(undefined, { VIN: vin, vehicleData, base64VehicleData})
                     await this.#optimize(vin, ta)
                     console.log(vin + ": done")
                 } catch(e:any) {
                     console.log(vin + ": " + e.message)
-                    console.log(e);
                 }
             }
         }
