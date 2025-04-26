@@ -112,7 +112,7 @@ class Tesla {
   }
   
   async wakeUp(maxRetries = 30):Promise<any> {
-    if (this.vehicleData) return;
+    console.log("Waking up " + this.VIN);
     if (maxRetries == 0) {
       throw new Error("wakeup failed, giving up")
     }
@@ -120,6 +120,7 @@ class Tesla {
     var wakeUpR = await this.#request('POST', '/vehicles/{VIN}/wake_up');  
     console.log(`${this.VIN} is ${wakeUpR.state}`);
     if (wakeUpR.state == 'online') {
+      console.log(`${this.VIN} woke up`);
       await this.cacheVehicleData();
       return;
     }
@@ -179,11 +180,16 @@ class Tesla {
 
   async startCharging(amps: number) {
     if (!this.vehicleData) await this.loadVehicleData();
-    await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
-    await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
-    this.vehicleData.charge_state.charge_amps = amps;
-    this.vehicleData.charge_state.charging_state = "Charging";
-    await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
+    // await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
+    const response = await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
+    if (!response.result) {
+      console.log(response);
+      await this.cacheVehicleData();
+    } else {
+      // this.vehicleData.charge_state.charge_amps = amps;
+      this.vehicleData.charge_state.charging_state = "Charging";
+      await Tesla.m?.upsert(this.VIN, {state: 'online', charge_state: this.vehicleData.charge_state});
+    }
   }
 
   async setLock(lock: boolean) {
