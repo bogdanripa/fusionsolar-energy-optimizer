@@ -146,7 +146,7 @@ class Tesla {
         logitude: mats?.drive_state?.logitude
       },
       charge_state: {
-        charging_state: mats?.charging_state,
+        charging_state: mats.charge_state?.charging_state,
         charge_port_door_open: mats?.charge_port_door_open,
         battery_level: mats?.battery_level,
         charge_limit_soc: mats?.charge_limit_soc,
@@ -213,7 +213,7 @@ class Tesla {
         state: requestedVD.state,
         drive_state: {
           latitude: requestedVD.drive_state.latitude,
-          logitude: requestedVD.drive_state.longitude
+          longitude: requestedVD.drive_state.longitude
         },
         charge_state: {
           charge_port_door_open: requestedVD.charge_state.charge_port_door_open,
@@ -244,7 +244,7 @@ class Tesla {
     if (Tesla.m && this.VIN) {
       const mats:any = await Tesla.m.getById(this.VIN)
       if(mats && 'api_type' in mats) {
-        this.apiType = mats.api_ype;
+        this.apiType = mats.api_type;
       } else {
         this.apiType = "legacy";
       }
