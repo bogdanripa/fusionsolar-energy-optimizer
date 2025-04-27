@@ -143,15 +143,15 @@ class Tesla {
       state: mats.state,
       drive_state: {
         latitude: mats?.drive_state?.latitude,
-        logitude: mats?.drive_state?.logitude
+        longitude: mats?.drive_state?.longitude
       },
       charge_state: {
         charging_state: mats.charge_state?.charging_state,
-        charge_port_door_open: mats?.charge_port_door_open,
-        battery_level: mats?.battery_level,
-        charge_limit_soc: mats?.charge_limit_soc,
-        charge_amps: mats?.charge_amps,
-        charge_current_request_max: mats?.charge_current_request_max
+        charge_port_door_open: mats?.charge_state?.charge_port_door_open,
+        battery_level: mats?.charge_state?.battery_level,
+        charge_limit_soc: mats?.charge_state?.charge_limit_soc,
+        charge_amps: mats?.charge_state?.charge_amps,
+        charge_current_request_max: mats?.charge_state?.charge_current_request_max
       }
     }
   }
@@ -183,7 +183,6 @@ class Tesla {
     // await this.#request("POST", "/vehicles/{VIN}/command/set_charging_amps", {charging_amps: amps});
     const response = await this.#request("POST", "/vehicles/{VIN}/command/charge_start");
     if (!response.result) {
-      console.log(response);
       await this.cacheVehicleData();
     } else {
       // this.vehicleData.charge_state.charge_amps = amps;
@@ -204,7 +203,7 @@ class Tesla {
   
   async getChargeLimit() {
     if (!this.vehicleData) await this.loadVehicleData();
-    return this.vehicleData.charge_state.charge_limit_soc;
+    return this.vehicleData.charge_state.charge_limit_soc || 80;
   }
 
   async cacheVehicleData() {
