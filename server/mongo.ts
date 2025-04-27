@@ -4,7 +4,7 @@ type TeslaType = {
     _id: string;
     drive_state: {
         latitude: number;
-        logitude: number;
+        longitude: number;
     };
     state: string;
     api_type?: string;
@@ -56,7 +56,7 @@ const TeslaSchema = new mongoose.Schema<TeslaType>({
     state: { type: String, required: true, default: 'unknown' },
     drive_state: {
         latitude: { type: Number, required: true },
-        logitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
     },
     charge_state: {
         charge_port_door_open: { type: Boolean, required: true },
