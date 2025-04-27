@@ -48,13 +48,13 @@ export class FusionsolarEnergyOptimizer {
             return
         }
         var pos = await teslas[VIN].getCachedPosition();
-        console.log(VIN + ": is at " + pos.latitude + ", " + pos.logitude)
+        console.log(VIN + ": is at " + pos.latitude + ", " + pos.longitude)
         
         var sList = await this.fusionsolar.getStationsList();
         let closestStation: Station | undefined = undefined;
 
         for (const station of sList) {
-            station.sqDistance = Math.abs(station.latitude - pos.latitude) * Math.abs(station.longitude - pos.logitude);
+            station.sqDistance = Math.abs(station.latitude - pos.latitude) * Math.abs(station.longitude - pos.longitude);
             
             //console.log(station.name + ": " + station.latitude + ", " + station.longitude)
             
