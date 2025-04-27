@@ -22,7 +22,7 @@ interface Station {
     dn: string
 }
 
-@GenezioDeploy({instanceSize: "large", timeout: 300})
+@GenezioDeploy({timeout: 300})
 export class FusionsolarEnergyOptimizer {
     fusionsolar: FusionSolar;
     constructor() {
